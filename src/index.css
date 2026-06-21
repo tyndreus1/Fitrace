@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  --witch: #a855f7;
+  --witch-dark: #7e22ce;
+  --bear: #0ea5e9;
+  --bear-dark: #0369a1;
+  --bg: #0b0d14;
+  --bg-soft: #12151f;
+  --card: #161a26;
+  --border: #232838;
+  --text: #e7e9f0;
+  --text-dim: #8b92a8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+}
+
+#root {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(168, 85, 247, 0.10), transparent 40%),
+    radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.10), transparent 40%),
+    var(--bg);
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.witch-grad {
+  background: linear-gradient(135deg, var(--witch), var(--witch-dark));
+}
+.bear-grad {
+  background: linear-gradient(135deg, var(--bear), var(--bear-dark));
+}
