@@ -3,26 +3,25 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { useAuth } from '../context/AuthContext'
 import { useTrackerData } from '../lib/useTrackerData'
 import { formatDay } from '../lib/dates'
+import { BODY_POINTS, bodyPointByKey } from '../lib/bodyPoints'
+import BodyDiagram from '../components/BodyDiagram'
 
-const FIELDS = [
-  { key: 'waist_cm', label: 'Waist' },
-  { key: 'chest_cm', label: 'Chest' },
-  { key: 'hips_cm', label: 'Hips' },
-  { key: 'arm_cm', label: 'Arm' },
-  { key: 'thigh_cm', label: 'Thigh' },
-  { key: 'neck_cm', label: 'Neck' },
-  { key: 'body_fat_pct', label: 'Body fat %' },
-]
+const ALL_FIELDS = [...BODY_POINTS, { key: 'body_fat_pct', label: 'Body Fat %' }]
+const GENDER_BY_PROFILE = { witch: 'female', polar_bear: 'male' }
 
 export default function Weight() {
   const { profile } = useAuth()
-  const { weightLogs, measurements, addWeight, addMeasurement, loading } = useTrackerData(profile.id)
+  const { weightLogs, measurements, addWeight, addMeasurement } = useTrackerData(profile.id)
   const [weightInput, setWeightInput] = useState('')
   const [measureInputs, setMeasureInputs] = useState({})
+  const [activeKey, setActiveKey] = useState(BODY_POINTS[0].key)
   const [tab, setTab] = useState('weight')
   const [msg, setMsg] = useState('')
 
   const chartData = weightLogs.map((w) => ({ date: formatDay(w.log_date), kg: w.weight_kg }))
+  const gender = GENDER_BY_PROFILE[profile.id] || 'female'
+  const filledKeys = new Set(Object.keys(measureInputs).filter((k) => measureInputs[k]))
+  const activePoint = bodyPointByKey(activeKey)
 
   async function submitWeight(e) {
     e.preventDefault()
@@ -37,7 +36,7 @@ export default function Weight() {
   async function submitMeasurement(e) {
     e.preventDefault()
     const values = {}
-    for (const f of FIELDS) {
+    for (const f of ALL_FIELDS) {
       if (measureInputs[f.key]) values[f.key] = parseFloat(measureInputs[f.key])
     }
     if (Object.keys(values).length === 0) return
@@ -103,21 +102,60 @@ export default function Weight() {
 
       {tab === 'measure' && (
         <>
-          <form onSubmit={submitMeasurement} className="card p-5 grid grid-cols-2 gap-3">
-            {FIELDS.map((f) => (
+          <form onSubmit={submitMeasurement} className="card p-5 flex flex-col items-center gap-4">
+            <BodyDiagram
+              gender={gender}
+              activeKey={activeKey}
+              filledKeys={filledKeys}
+              onSelect={setActiveKey}
+              color={profile.color}
+            />
+
+            <div className="w-full flex flex-col items-center gap-2">
+              <span className="text-sm font-medium" style={{ color: profile.color }}>
+                {activePoint?.label}
+              </span>
               <input
-                key={f.key}
                 type="number"
                 step="0.1"
-                placeholder={f.label + ' (cm)'}
-                value={measureInputs[f.key] || ''}
-                onChange={(e) => setMeasureInputs((m) => ({ ...m, [f.key]: e.target.value }))}
-                className="rounded-lg bg-[var(--bg-soft)] border border-[var(--border)] px-3 py-2 outline-none"
+                autoFocus
+                placeholder={`${activePoint?.label} (cm)`}
+                value={measureInputs[activeKey] || ''}
+                onChange={(e) => setMeasureInputs((m) => ({ ...m, [activeKey]: e.target.value }))}
+                className="w-48 text-center rounded-lg bg-[var(--bg-soft)] border border-[var(--border)] px-3 py-2 outline-none"
               />
-            ))}
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {BODY_POINTS.map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => setActiveKey(p.key)}
+                  className="text-xs rounded-full px-2.5 py-1 border"
+                  style={{
+                    borderColor: filledKeys.has(p.key) ? profile.color : 'var(--border)',
+                    color: activeKey === p.key ? profile.color : 'var(--text-dim)',
+                  }}
+                >
+                  {p.label}
+                  {filledKeys.has(p.key) ? ' ✓' : ''}
+                </button>
+              ))}
+            </div>
+
+            <input
+              type="number"
+              step="0.1"
+              placeholder="Body Fat % (optional)"
+              value={measureInputs.body_fat_pct || ''}
+              onChange={(e) => setMeasureInputs((m) => ({ ...m, body_fat_pct: e.target.value }))}
+              className="w-48 text-center rounded-lg bg-[var(--bg-soft)] border border-[var(--border)] px-3 py-2 outline-none"
+            />
+
             <button
               type="submit"
-              className="col-span-2 rounded-lg py-2 font-medium text-white"
+              className="rounded-lg px-6 py-2 font-medium text-white"
               style={{ background: profile.color }}
             >
               Save Measurements
@@ -134,7 +172,7 @@ export default function Weight() {
                   <thead>
                     <tr className="text-[var(--text-dim)] text-left">
                       <th className="py-1">Date</th>
-                      {FIELDS.map((f) => (
+                      {ALL_FIELDS.map((f) => (
                         <th key={f.key} className="py-1 px-2">{f.label}</th>
                       ))}
                     </tr>
@@ -143,7 +181,7 @@ export default function Weight() {
                     {[...measurements].reverse().map((m) => (
                       <tr key={m.id} className="border-t border-[var(--border)]">
                         <td className="py-1">{formatDay(m.log_date)}</td>
-                        {FIELDS.map((f) => (
+                        {ALL_FIELDS.map((f) => (
                           <td key={f.key} className="py-1 px-2">{m[f.key] ?? '—'}</td>
                         ))}
                       </tr>
