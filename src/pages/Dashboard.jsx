@@ -5,6 +5,7 @@ import { formatDay } from '../lib/dates'
 import { computeWaterStreak, latestWeight, weightLostKg, todaysProgress } from '../lib/stats'
 import { calcBmi } from '../lib/bmi'
 import { dailyProteinG } from '../lib/protein'
+import MotivationBanner from '../components/MotivationBanner'
 
 const GENDER_BY_PROFILE = { witch: 'female', polar_bear: 'male' }
 
@@ -39,6 +40,8 @@ export default function Dashboard() {
         </h2>
         <p className="text-[var(--text-dim)] text-sm">Here's your current status.</p>
       </div>
+
+      <MotivationBanner />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Current Weight" value={current ? `${current} kg` : '—'} color={profile.color} />
