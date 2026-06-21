@@ -7,20 +7,20 @@ function RacerCard({ p, lost, streak, water, isMe }) {
     <div className="card p-5 flex flex-col items-center gap-2" style={{ borderColor: isMe ? p.color : 'var(--border)' }}>
       <span className="text-4xl">{p.avatar}</span>
       <span className="font-medium" style={{ color: p.color }}>
-        {p.display_name} {isMe && <span className="text-xs text-[var(--text-dim)]">(sen)</span>}
+        {p.display_name} {isMe && <span className="text-xs text-[var(--text-dim)]">(you)</span>}
       </span>
       <div className="text-center mt-2">
         <p className="text-2xl font-semibold">{lost.toFixed(1)} kg</p>
-        <p className="text-xs text-[var(--text-dim)]">toplam kayıp</p>
+        <p className="text-xs text-[var(--text-dim)]">total lost</p>
       </div>
       <div className="flex gap-4 mt-2 text-sm">
         <div className="text-center">
           <p className="font-medium">{streak}</p>
-          <p className="text-xs text-[var(--text-dim)]">gün serisi</p>
+          <p className="text-xs text-[var(--text-dim)]">day streak</p>
         </div>
         <div className="text-center">
           <p className="font-medium">{(water / 1000).toFixed(1)}L</p>
-          <p className="text-xs text-[var(--text-dim)]">toplam su</p>
+          <p className="text-xs text-[var(--text-dim)]">total water</p>
         </div>
       </div>
     </div>
@@ -32,7 +32,7 @@ export default function Race() {
   const me = useTrackerData(profile.id)
   const them = useTrackerData(opponent?.id)
 
-  if (!opponent) return <p className="text-[var(--text-dim)]">Rakip profil bulunamadı.</p>
+  if (!opponent) return <p className="text-[var(--text-dim)]">Opponent profile not found.</p>
 
   const myLost = weightLostKg(me.weightLogs)
   const theirLost = weightLostKg(them.weightLogs)
@@ -48,9 +48,9 @@ export default function Race() {
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold">🏁 Yarış</h2>
+        <h2 className="text-xl font-semibold">🏁 Race</h2>
         <p className="text-[var(--text-dim)] text-sm">
-          {leading ? `${leading.display_name} şu anda önde!` : 'Tam berabere!'}
+          {leading ? `${leading.display_name} is currently leading!` : "It's a tie!"}
         </p>
       </div>
 
@@ -60,8 +60,8 @@ export default function Race() {
           <div style={{ width: `${100 - myPct}%`, background: opponent.color }} />
         </div>
         <div className="flex justify-between mt-2 text-xs text-[var(--text-dim)]">
-          <span>{profile.display_name} %{myPct}</span>
-          <span>{opponent.display_name} %{100 - myPct}</span>
+          <span>{profile.display_name} {myPct}%</span>
+          <span>{opponent.display_name} {100 - myPct}%</span>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export default function Race() {
       </div>
 
       <div className="card p-4">
-        <h3 className="font-medium mb-2">Bugünkü Su Yarışı</h3>
+        <h3 className="font-medium mb-2">Today's Water Race</h3>
         {[
           { p: profile, ml: me.todaysWater, goal: profile.water_goal_ml },
           { p: opponent, ml: them.todaysWater, goal: opponent.water_goal_ml },

@@ -28,24 +28,24 @@ export default function Dashboard() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-xl font-semibold">
-          Merhaba, {profile.display_name} {profile.avatar}
+          Hi, {profile.display_name} {profile.avatar}
         </h2>
-        <p className="text-[var(--text-dim)] text-sm">İşte güncel durumun.</p>
+        <p className="text-[var(--text-dim)] text-sm">Here's your current status.</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Güncel Kilo" value={current ? `${current} kg` : '—'} color={profile.color} />
-        <StatCard label="Toplam Kayıp" value={`${lost.toFixed(1)} kg`} color="#22c55e" />
-        <StatCard label="Su Serisi" value={`${streak} gün`} sub="hedefi tutturma" color="#0ea5e9" />
-        <StatCard label="Bugün Su" value={`%${water.pct}`} sub={`${water.ml} / ${profile.water_goal_ml} ml`} color={profile.color} />
+        <StatCard label="Current Weight" value={current ? `${current} kg` : '—'} color={profile.color} />
+        <StatCard label="Total Lost" value={`${lost.toFixed(1)} kg`} color="#22c55e" />
+        <StatCard label="Water Streak" value={`${streak} days`} sub="hitting your goal" color="#0ea5e9" />
+        <StatCard label="Today's Water" value={`${water.pct}%`} sub={`${water.ml} / ${profile.water_goal_ml} ml`} color={profile.color} />
       </div>
 
       <div className="card p-4 h-64">
-        <h3 className="font-medium mb-2">Kilo Trendi</h3>
+        <h3 className="font-medium mb-2">Weight Trend</h3>
         {loading ? (
-          <p className="text-[var(--text-dim)] text-sm">Yükleniyor…</p>
+          <p className="text-[var(--text-dim)] text-sm">Loading…</p>
         ) : chartData.length === 0 ? (
-          <p className="text-[var(--text-dim)] text-sm">Henüz veri yok. Kilo & Ölçü sekmesinden ekleyebilirsin.</p>
+          <p className="text-[var(--text-dim)] text-sm">No data yet. Add an entry from the Weight & Body tab.</p>
         ) : (
           <ResponsiveContainer width="100%" height="85%">
             <LineChart data={chartData}>
@@ -60,9 +60,9 @@ export default function Dashboard() {
       </div>
 
       <div className="card p-4">
-        <h3 className="font-medium mb-2">Özet</h3>
+        <h3 className="font-medium mb-2">Summary</h3>
         <p className="text-sm text-[var(--text-dim)]">
-          {weightLogs.length} kilo kaydı · {measurements.length} ölçüm kaydı · {waterLogs.length} su kaydı
+          {weightLogs.length} weight entries · {measurements.length} measurement entries · {waterLogs.length} water entries
         </p>
       </div>
     </div>

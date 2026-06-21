@@ -41,8 +41,8 @@ export default function Badges() {
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold">🎖️ Rozetler</h2>
-        <p className="text-[var(--text-dim)] text-sm">{earnedKeys.size} / {BADGE_DEFS.length} kazanıldı</p>
+        <h2 className="text-xl font-semibold">🎖️ Badges</h2>
+        <p className="text-[var(--text-dim)] text-sm">{earnedKeys.size} / {BADGE_DEFS.length} earned</p>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {BADGE_DEFS.map((b) => {

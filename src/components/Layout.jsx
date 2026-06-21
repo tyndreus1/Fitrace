@@ -2,11 +2,11 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const NAV = [
-  { to: '/', label: 'Panel', icon: '📊' },
-  { to: '/water', label: 'Su', icon: '💧' },
-  { to: '/weight', label: 'Kilo & Ölçü', icon: '⚖️' },
-  { to: '/race', label: 'Yarış', icon: '🏁' },
-  { to: '/badges', label: 'Rozetler', icon: '🎖️' },
+  { to: '/', label: 'Dashboard', icon: '📊' },
+  { to: '/water', label: 'Water', icon: '💧' },
+  { to: '/weight', label: 'Weight & Body', icon: '⚖️' },
+  { to: '/race', label: 'Race', icon: '🏁' },
+  { to: '/badges', label: 'Badges', icon: '🎖️' },
 ]
 
 export default function Layout() {
@@ -28,7 +28,7 @@ export default function Layout() {
             onClick={logout}
             className="text-sm text-[var(--text-dim)] border border-[var(--border)] rounded-lg px-3 py-1.5 hover:text-[var(--text)]"
           >
-            Çıkış
+            Log out
           </button>
         </div>
       </header>

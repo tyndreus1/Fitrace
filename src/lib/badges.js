@@ -1,14 +1,14 @@
 export const BADGE_DEFS = [
-  { key: 'first_log', label: 'İlk Adım', desc: 'İlk kilo kaydını ekledin', icon: '🌱' },
-  { key: 'streak_3', label: 'Isınıyoruz', desc: '3 gün üst üste su hedefine ulaştın', icon: '🔥' },
-  { key: 'streak_7', label: 'Bir Hafta Tam Gaz', desc: '7 gün üst üste su hedefine ulaştın', icon: '⚡' },
-  { key: 'streak_30', label: 'Demir İrade', desc: '30 gün üst üste su hedefine ulaştın', icon: '🏆' },
-  { key: 'water_100l', label: 'Su Perisi', desc: 'Toplam 100 litre su içtin', icon: '💧' },
-  { key: 'weight_5', label: 'İlk 5', desc: '5 kg verdin', icon: '🎯' },
-  { key: 'weight_10', label: 'Çift Hane', desc: '10 kg verdin', icon: '🥇' },
-  { key: 'measure_5', label: 'Metre Ustası', desc: '5 ölçüm kaydı ekledin', icon: '📏' },
-  { key: 'consistent_14', label: 'Tutarlılık', desc: '14 gün boyunca kilonu kaydettin', icon: '📅' },
-  { key: 'race_lead', label: 'Liderlik', desc: 'Yarışta öne geçtin', icon: '👑' },
+  { key: 'first_log', label: 'First Step', desc: 'Logged your first weight entry', icon: '🌱' },
+  { key: 'streak_3', label: 'Warming Up', desc: 'Hit your water goal 3 days in a row', icon: '🔥' },
+  { key: 'streak_7', label: 'Full Week', desc: 'Hit your water goal 7 days in a row', icon: '⚡' },
+  { key: 'streak_30', label: 'Iron Will', desc: 'Hit your water goal 30 days in a row', icon: '🏆' },
+  { key: 'water_100l', label: 'Water Sprite', desc: 'Drank 100 liters of water in total', icon: '💧' },
+  { key: 'weight_5', label: 'First 5', desc: 'Lost 5 kg', icon: '🎯' },
+  { key: 'weight_10', label: 'Double Digits', desc: 'Lost 10 kg', icon: '🥇' },
+  { key: 'measure_5', label: 'Measure Master', desc: 'Logged 5 measurement entries', icon: '📏' },
+  { key: 'consistent_14', label: 'Consistency', desc: 'Logged your weight for 14 days', icon: '📅' },
+  { key: 'race_lead', label: 'Leadership', desc: 'Took the lead in the race', icon: '👑' },
 ]
 
 export function badgeByKey(key) {

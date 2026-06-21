@@ -10,7 +10,7 @@ import Badges from './pages/Badges'
 
 function Gate() {
   const { profile, loading } = useAuth()
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-[var(--text-dim)]">Yükleniyor…</div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-[var(--text-dim)]">Loading…</div>
   if (!profile) return <Login />
 
   return (

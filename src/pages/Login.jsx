@@ -18,7 +18,7 @@ export default function Login() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-text-dim">Yükleniyor…</div>
+    return <div className="min-h-screen flex items-center justify-center text-text-dim">Loading…</div>
   }
 
   return (
@@ -72,7 +72,7 @@ export default function Login() {
               }}
               className="flex-1 rounded-lg border border-[var(--border)] py-2 text-[var(--text-dim)]"
             >
-              Geri
+              Back
             </button>
             <button
               type="submit"
@@ -80,7 +80,7 @@ export default function Login() {
               className="flex-1 rounded-lg py-2 font-medium text-white disabled:opacity-50"
               style={{ background: selected.color }}
             >
-              Giriş
+              Log in
             </button>
           </div>
         </form>

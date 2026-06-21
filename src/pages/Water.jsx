@@ -34,10 +34,10 @@ export default function Water() {
         >
           <div className="w-32 h-32 rounded-full bg-[var(--card)] flex flex-col items-center justify-center">
             <span className="text-2xl font-semibold">{(todaysWater / 1000).toFixed(2)} L</span>
-            <span className="text-xs text-[var(--text-dim)]">/ {(goal / 1000).toFixed(1)} L hedef</span>
+            <span className="text-xs text-[var(--text-dim)]">/ {(goal / 1000).toFixed(1)} L goal</span>
           </div>
         </div>
-        <p className="text-sm text-[var(--text-dim)]">%{pct} tamamlandı</p>
+        <p className="text-sm text-[var(--text-dim)]">{pct}% complete</p>
 
         <div className="grid grid-cols-4 gap-2 w-full">
           {QUICK_AMOUNTS.map((ml) => (
@@ -54,7 +54,7 @@ export default function Water() {
         <div className="flex gap-2 w-full">
           <input
             type="number"
-            placeholder="özel ml"
+            placeholder="custom ml"
             value={custom}
             onChange={(e) => setCustom(e.target.value)}
             className="flex-1 rounded-lg bg-[var(--bg-soft)] border border-[var(--border)] px-3 py-2 outline-none"
@@ -64,16 +64,16 @@ export default function Water() {
             className="rounded-lg px-4 py-2 font-medium text-white"
             style={{ background: profile.color }}
           >
-            Ekle
+            Add
           </button>
         </div>
       </div>
 
       <div className="card p-4">
-        <h3 className="font-medium mb-3">Bugünkü kayıtlar</h3>
-        {loading && <p className="text-[var(--text-dim)] text-sm">Yükleniyor…</p>}
+        <h3 className="font-medium mb-3">Today's entries</h3>
+        {loading && <p className="text-[var(--text-dim)] text-sm">Loading…</p>}
         {!loading && todaysLogs.length === 0 && (
-          <p className="text-[var(--text-dim)] text-sm">Henüz kayıt yok.</p>
+          <p className="text-[var(--text-dim)] text-sm">No entries yet.</p>
         )}
         <ul className="flex flex-col gap-2">
           {todaysLogs.map((w) => (
@@ -83,7 +83,7 @@ export default function Water() {
             >
               <span>💧 {w.amount_ml} ml</span>
               <span className="text-[var(--text-dim)]">
-                {new Date(w.logged_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                {new Date(w.logged_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
               </span>
               <button onClick={() => removeWaterLog(w.id)} className="text-[var(--text-dim)] hover:text-red-400">
                 ✕

@@ -28,8 +28,8 @@ export function AuthProvider({ children }) {
 
   async function login(profileId, pin) {
     const target = allProfiles.find((p) => p.id === profileId)
-    if (!target) return { error: 'Profil bulunamadı' }
-    if (String(target.pin) !== String(pin)) return { error: 'PIN hatalı' }
+    if (!target) return { error: 'Profile not found' }
+    if (String(target.pin) !== String(pin)) return { error: 'Incorrect PIN' }
     setProfile(target)
     localStorage.setItem(STORAGE_KEY, target.id)
     return { error: null }

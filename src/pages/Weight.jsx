@@ -2,16 +2,16 @@ import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { useAuth } from '../context/AuthContext'
 import { useTrackerData } from '../lib/useTrackerData'
-import { formatDay, todayStr } from '../lib/dates'
+import { formatDay } from '../lib/dates'
 
 const FIELDS = [
-  { key: 'waist_cm', label: 'Bel' },
-  { key: 'chest_cm', label: 'Göğüs' },
-  { key: 'hips_cm', label: 'Kalça' },
-  { key: 'arm_cm', label: 'Kol' },
-  { key: 'thigh_cm', label: 'Bacak' },
-  { key: 'neck_cm', label: 'Boyun' },
-  { key: 'body_fat_pct', label: 'Yağ %' },
+  { key: 'waist_cm', label: 'Waist' },
+  { key: 'chest_cm', label: 'Chest' },
+  { key: 'hips_cm', label: 'Hips' },
+  { key: 'arm_cm', label: 'Arm' },
+  { key: 'thigh_cm', label: 'Thigh' },
+  { key: 'neck_cm', label: 'Neck' },
+  { key: 'body_fat_pct', label: 'Body fat %' },
 ]
 
 export default function Weight() {
@@ -30,7 +30,7 @@ export default function Weight() {
     if (!n) return
     await addWeight(n)
     setWeightInput('')
-    setMsg('Kilo kaydedildi ✓')
+    setMsg('Weight saved ✓')
     setTimeout(() => setMsg(''), 2000)
   }
 
@@ -43,7 +43,7 @@ export default function Weight() {
     if (Object.keys(values).length === 0) return
     await addMeasurement(values)
     setMeasureInputs({})
-    setMsg('Ölçüm kaydedildi ✓')
+    setMsg('Measurements saved ✓')
     setTimeout(() => setMsg(''), 2000)
   }
 
@@ -54,13 +54,13 @@ export default function Weight() {
           onClick={() => setTab('weight')}
           className={`flex-1 py-2 rounded-lg border ${tab === 'weight' ? 'border-[var(--text)]' : 'border-[var(--border)] text-[var(--text-dim)]'}`}
         >
-          ⚖️ Kilo
+          ⚖️ Weight
         </button>
         <button
           onClick={() => setTab('measure')}
           className={`flex-1 py-2 rounded-lg border ${tab === 'measure' ? 'border-[var(--text)]' : 'border-[var(--border)] text-[var(--text-dim)]'}`}
         >
-          📏 Ölçü
+          📏 Measurements
         </button>
       </div>
 
@@ -72,20 +72,20 @@ export default function Weight() {
             <input
               type="number"
               step="0.1"
-              placeholder="Bugünkü kilon (kg)"
+              placeholder="Today's weight (kg)"
               value={weightInput}
               onChange={(e) => setWeightInput(e.target.value)}
               className="flex-1 rounded-lg bg-[var(--bg-soft)] border border-[var(--border)] px-3 py-2 outline-none"
             />
             <button type="submit" className="rounded-lg px-4 py-2 font-medium text-white" style={{ background: profile.color }}>
-              Kaydet
+              Save
             </button>
           </form>
 
           <div className="card p-4 h-72">
-            <h3 className="font-medium mb-2">Kilo Grafiği (90 gün)</h3>
+            <h3 className="font-medium mb-2">Weight Chart (90 days)</h3>
             {chartData.length === 0 ? (
-              <p className="text-[var(--text-dim)] text-sm">Henüz veri yok.</p>
+              <p className="text-[var(--text-dim)] text-sm">No data yet.</p>
             ) : (
               <ResponsiveContainer width="100%" height="90%">
                 <LineChart data={chartData}>
@@ -120,20 +120,20 @@ export default function Weight() {
               className="col-span-2 rounded-lg py-2 font-medium text-white"
               style={{ background: profile.color }}
             >
-              Ölçümleri Kaydet
+              Save Measurements
             </button>
           </form>
 
           <div className="card p-4">
-            <h3 className="font-medium mb-3">Geçmiş Ölçümler</h3>
+            <h3 className="font-medium mb-3">Measurement History</h3>
             {measurements.length === 0 ? (
-              <p className="text-[var(--text-dim)] text-sm">Henüz veri yok.</p>
+              <p className="text-[var(--text-dim)] text-sm">No data yet.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[var(--text-dim)] text-left">
-                      <th className="py-1">Tarih</th>
+                      <th className="py-1">Date</th>
                       {FIELDS.map((f) => (
                         <th key={f.key} className="py-1 px-2">{f.label}</th>
                       ))}

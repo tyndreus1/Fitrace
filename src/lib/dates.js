@@ -15,5 +15,5 @@ export function daysAgoStr(n) {
 
 export function formatDay(dateStr) {
   const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })
+  return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
 }
