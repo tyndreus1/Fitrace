@@ -1,8 +1,9 @@
 import { useAuth } from '../context/AuthContext'
 import { useTrackerData } from '../lib/useTrackerData'
-import { computeWaterStreak, weightLostKg, latestWeight, totalWaterMl } from '../lib/stats'
+import { computeWaterStreak, weightLostKg, totalWaterMl, totalCmLost } from '../lib/stats'
+import { bmiLost } from '../lib/bmi'
 
-function RacerCard({ p, lost, streak, water, isMe }) {
+function RacerCard({ p, lost, bmiLostVal, cmLost, streak, water, isMe }) {
   return (
     <div className="card p-5 flex flex-col items-center gap-2" style={{ borderColor: isMe ? p.color : 'var(--border)' }}>
       <span className="text-4xl">{p.avatar}</span>
@@ -12,6 +13,16 @@ function RacerCard({ p, lost, streak, water, isMe }) {
       <div className="text-center mt-2">
         <p className="text-2xl font-semibold">{lost.toFixed(1)} kg</p>
         <p className="text-xs text-[var(--text-dim)]">total lost</p>
+      </div>
+      <div className="flex gap-4 mt-2 text-sm">
+        <div className="text-center">
+          <p className="font-medium">{bmiLostVal.toFixed(1)}</p>
+          <p className="text-xs text-[var(--text-dim)]">BMI lost</p>
+        </div>
+        <div className="text-center">
+          <p className="font-medium">{cmLost.toFixed(1)} cm</p>
+          <p className="text-xs text-[var(--text-dim)]">total lost</p>
+        </div>
       </div>
       <div className="flex gap-4 mt-2 text-sm">
         <div className="text-center">
@@ -36,14 +47,18 @@ export default function Race() {
 
   const myLost = weightLostKg(me.weightLogs)
   const theirLost = weightLostKg(them.weightLogs)
+  const myBmiLost = bmiLost(myLost, profile.height_cm)
+  const theirBmiLost = bmiLost(theirLost, opponent.height_cm)
+  const myCmLost = totalCmLost(me.measurements)
+  const theirCmLost = totalCmLost(them.measurements)
   const myStreak = computeWaterStreak(me.waterLogs, profile.water_goal_ml)
   const theirStreak = computeWaterStreak(them.waterLogs, opponent.water_goal_ml)
   const myWater = totalWaterMl(me.waterLogs)
   const theirWater = totalWaterMl(them.waterLogs)
 
-  const total = myLost + theirLost
-  const myPct = total > 0 ? Math.round((myLost / total) * 100) : 50
-  const leading = myLost === theirLost ? null : myLost > theirLost ? profile : opponent
+  const total = myBmiLost + theirBmiLost
+  const myPct = total > 0 ? Math.round((myBmiLost / total) * 100) : 50
+  const leading = myBmiLost === theirBmiLost ? null : myBmiLost > theirBmiLost ? profile : opponent
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,6 +70,7 @@ export default function Race() {
       </div>
 
       <div className="card p-4">
+        <p className="text-xs text-center text-[var(--text-dim)] mb-2">BMI Race</p>
         <div className="flex h-4 rounded-full overflow-hidden bg-[var(--bg-soft)]">
           <div style={{ width: `${myPct}%`, background: profile.color }} />
           <div style={{ width: `${100 - myPct}%`, background: opponent.color }} />
@@ -66,8 +82,8 @@ export default function Race() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <RacerCard p={profile} lost={myLost} streak={myStreak} water={myWater} isMe />
-        <RacerCard p={opponent} lost={theirLost} streak={theirStreak} water={theirWater} />
+        <RacerCard p={profile} lost={myLost} bmiLostVal={myBmiLost} cmLost={myCmLost} streak={myStreak} water={myWater} isMe />
+        <RacerCard p={opponent} lost={theirLost} bmiLostVal={theirBmiLost} cmLost={theirCmLost} streak={theirStreak} water={theirWater} />
       </div>
 
       <div className="card p-4">

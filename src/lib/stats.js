@@ -1,4 +1,5 @@
 import { daysAgoStr, todayStr } from './dates'
+import { BODY_POINTS } from './bodyPoints'
 
 export function waterByDay(waterLogs) {
   const map = {}
@@ -53,4 +54,18 @@ export function todaysProgress(waterLogs, goalMl) {
   const today = todayStr()
   const ml = waterLogs.filter((w) => w.log_date === today).reduce((s, w) => s + w.amount_ml, 0)
   return { ml, pct: Math.min(100, Math.round((ml / goalMl) * 100)) }
+}
+
+export function totalCmLost(measurements) {
+  if (measurements.length < 2) return 0
+  const sorted = [...measurements].sort((a, b) => a.log_date.localeCompare(b.log_date))
+  const first = sorted[0]
+  const last = sorted[sorted.length - 1]
+  let total = 0
+  for (const p of BODY_POINTS) {
+    if (first[p.key] != null && last[p.key] != null) {
+      total += first[p.key] - last[p.key]
+    }
+  }
+  return total
 }

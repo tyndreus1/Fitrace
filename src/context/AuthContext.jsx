@@ -40,11 +40,20 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(STORAGE_KEY)
   }
 
+  async function updateHeight(heightCm) {
+    const { error } = await supabase.from('profiles').update({ height_cm: heightCm }).eq('id', profile.id)
+    if (!error) {
+      setProfile((p) => ({ ...p, height_cm: heightCm }))
+      setAllProfiles((all) => all.map((p) => (p.id === profile.id ? { ...p, height_cm: heightCm } : p)))
+    }
+    return { error }
+  }
+
   const opponent = profile ? allProfiles.find((p) => p.id !== profile.id) : null
 
   return (
     <AuthContext.Provider
-      value={{ profile, opponent, allProfiles, loading, login, logout, reload: loadProfiles }}
+      value={{ profile, opponent, allProfiles, loading, login, logout, updateHeight, reload: loadProfiles }}
     >
       {children}
     </AuthContext.Provider>

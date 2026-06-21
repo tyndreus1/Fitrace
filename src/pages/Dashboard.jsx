@@ -3,6 +3,10 @@ import { useAuth } from '../context/AuthContext'
 import { useTrackerData } from '../lib/useTrackerData'
 import { formatDay } from '../lib/dates'
 import { computeWaterStreak, latestWeight, weightLostKg, todaysProgress } from '../lib/stats'
+import { calcBmi } from '../lib/bmi'
+import { dailyProteinG } from '../lib/protein'
+
+const GENDER_BY_PROFILE = { witch: 'female', polar_bear: 'male' }
 
 function StatCard({ label, value, sub, color }) {
   return (
@@ -23,6 +27,9 @@ export default function Dashboard() {
   const current = latestWeight(weightLogs)
   const water = todaysProgress(waterLogs, profile.water_goal_ml)
   const chartData = weightLogs.map((w) => ({ date: formatDay(w.log_date), kg: w.weight_kg }))
+  const gender = GENDER_BY_PROFILE[profile.id] || 'female'
+  const bmi = calcBmi(current, profile.height_cm)
+  const protein = dailyProteinG(current, profile.height_cm, gender)
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,6 +45,21 @@ export default function Dashboard() {
         <StatCard label="Total Lost" value={`${lost.toFixed(1)} kg`} color="#22c55e" />
         <StatCard label="Water Streak" value={`${streak} days`} sub="hitting your goal" color="#0ea5e9" />
         <StatCard label="Today's Water" value={`${water.pct}%`} sub={`${water.ml} / ${profile.water_goal_ml} ml`} color={profile.color} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <StatCard
+          label="BMI"
+          value={bmi ? bmi.toFixed(1) : '—'}
+          sub={profile.height_cm ? undefined : 'set your height in Weight & Body'}
+          color="#f59e0b"
+        />
+        <StatCard
+          label="Daily Protein Target"
+          value={protein ? `${protein} g` : '—'}
+          sub="to help preserve muscle while losing weight"
+          color="#10b981"
+        />
       </div>
 
       <div className="card p-4 h-64">
