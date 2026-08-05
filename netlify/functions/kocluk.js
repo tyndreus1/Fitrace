@@ -1,6 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk'
 
-const MODEL = 'claude-opus-5'
+// Birinci tercih Opus 5. API aşırı yüklenmiş dönerse (529) ikinci modele
+// geçiyoruz — sohbet yoğunluk yüzünden tamamen kesilmesin.
+const MODELS = ['claude-opus-5', 'claude-sonnet-5']
+
+function isRetryableElsewhere(err) {
+  const status = err?.status
+  return status === 429 || (typeof status === 'number' && status >= 500)
+}
 
 const SYSTEM = `Sen Özge'nin kişisel beslenme, antrenman ve motivasyon koçusun. Türkçe, sıcak, samimi ve gerçekçi bir dille konuşuyorsun; abartılı neşe ya da klişe motivasyon cümleleri kullanmıyorsun.
 
@@ -56,19 +63,32 @@ export const handler = async (event) => {
   try {
     // Netlify eşzamanlı fonksiyonları 10 saniyede kesilir; zaman aşımını bunun
     // altında tutup kendi hata yanıtımızı dönüyoruz (arayüz yedek metne düşer).
-    const client = new Anthropic({ apiKey, maxRetries: 2, timeout: 8500 })
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 4000,
-      system: [
-        { type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } },
-        { type: 'text', text: contextNote },
-      ],
-      // Yanıtlar kısa (2-5 cümle) ve sohbet gecikmeye duyarlı; düşük efor
-      // 10 saniyelik fonksiyon bütçesine rahat sığıyor.
-      output_config: { effort: 'low' },
-      messages: history,
-    })
+    const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 6500 })
+
+    let response
+    let lastError
+    for (const model of MODELS) {
+      try {
+        response = await client.messages.create({
+          model,
+          max_tokens: 4000,
+          system: [
+            { type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } },
+            { type: 'text', text: contextNote },
+          ],
+          // Yanıtlar kısa (2-5 cümle) ve sohbet gecikmeye duyarlı; düşük efor
+          // 10 saniyelik fonksiyon bütçesine rahat sığıyor.
+          output_config: { effort: 'low' },
+          messages: history,
+        })
+        break
+      } catch (err) {
+        lastError = err
+        if (!isRetryableElsewhere(err)) throw err
+        console.warn(`${model} yanıt veremedi (${err?.status}), sıradaki model deneniyor`)
+      }
+    }
+    if (!response) throw lastError
 
     if (response.stop_reason === 'refusal') {
       return {

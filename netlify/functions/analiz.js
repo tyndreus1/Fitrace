@@ -1,6 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk'
 
-const MODEL = 'claude-opus-5'
+// Birinci tercih Opus 5. API aşırı yüklenmiş dönerse (529) ikinci modele
+// geçiyoruz — kullanıcı yoğunluk yüzünden analizsiz kalmasın.
+const MODELS = ['claude-opus-5', 'claude-sonnet-5']
+
+function isRetryableElsewhere(err) {
+  const status = err?.status
+  return status === 429 || (typeof status === 'number' && status >= 500)
+}
 
 const SCHEMA = {
   type: 'object',
@@ -73,18 +80,31 @@ Bugünkü durum — hedef: ${hedef.kcal ?? '?'} kcal / ${hedef.protein ?? '?'} g
     // Netlify eşzamanlı fonksiyonları 10 saniyede kesilir. Kendi zaman aşımımızı
     // bunun altında tutuyoruz ki düzgün bir JSON hatası dönebilelim; arayüz de
     // bunu görüp yerel besin tablosuna düşsün.
-    const client = new Anthropic({ apiKey, maxRetries: 2, timeout: 8500 })
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 4000,
-      system: SYSTEM,
-      // Kısa ve iyi tanımlı bir görev; düşük efor hem hızlı hem yeterli.
-      output_config: {
-        effort: 'low',
-        format: { type: 'json_schema', schema: SCHEMA },
-      },
-      messages: [{ role: 'user', content: prompt }],
-    })
+    const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 6500 })
+
+    let response
+    let lastError
+    for (const model of MODELS) {
+      try {
+        response = await client.messages.create({
+          model,
+          max_tokens: 4000,
+          system: SYSTEM,
+          // Kısa ve iyi tanımlı bir görev; düşük efor hem hızlı hem yeterli.
+          output_config: {
+            effort: 'low',
+            format: { type: 'json_schema', schema: SCHEMA },
+          },
+          messages: [{ role: 'user', content: prompt }],
+        })
+        break
+      } catch (err) {
+        lastError = err
+        if (!isRetryableElsewhere(err)) throw err
+        console.warn(`${model} yanıt veremedi (${err?.status}), sıradaki model deneniyor`)
+      }
+    }
+    if (!response) throw lastError
 
     if (response.stop_reason === 'refusal') {
       return {
