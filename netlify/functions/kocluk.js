@@ -4,8 +4,9 @@ import Anthropic from '@anthropic-ai/sdk'
 // geçiyoruz — sohbet yoğunluk yüzünden tamamen kesilmesin.
 const MODELS = ['claude-opus-5', 'claude-sonnet-5']
 
-// Netlify eşzamanlı fonksiyon sınırı 10 saniye; altında kalıyoruz.
-const TOTAL_BUDGET_MS = 8500
+// Netlify hesabına göre eşzamanlı fonksiyon sınırı değişiyor; ölçmek için
+// geniş tutuluyor. Netlify daha erken keserse kendi hatasını döner.
+const TOTAL_BUDGET_MS = Number(process.env.AI_BUDGET_MS || 20000)
 const MIN_ATTEMPT_MS = 2500
 
 // Yanıtı şemayla kısıtlıyoruz: düşünme kapalıyken modelin iç muhakemesini
@@ -91,9 +92,11 @@ export const handler = async (event) => {
 
     let response
     let lastError
+    const tried = []
     for (const model of MODELS) {
       const remaining = TOTAL_BUDGET_MS - (Date.now() - startedAt)
       if (remaining < MIN_ATTEMPT_MS) break
+      const attemptStart = Date.now()
       try {
         response = await client.messages.create(
           {
@@ -115,14 +118,26 @@ export const handler = async (event) => {
           },
           { timeout: remaining },
         )
+        tried.push({ model, ms: Date.now() - attemptStart, ok: true })
         break
       } catch (err) {
         lastError = err
+        tried.push({ model, ms: Date.now() - attemptStart, err: err?.status || err?.name })
         if (!isRetryableElsewhere(err)) throw err
         console.warn(`${model} yanıt veremedi (${err?.status || err?.name}), sıradaki model deneniyor`)
       }
     }
-    if (!response) throw lastError
+    if (!response) {
+      return {
+        statusCode: 502,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          error: 'Koça ulaşılamadı',
+          detail: String(lastError?.message || lastError),
+          tried,
+        }),
+      }
+    }
 
     if (response.stop_reason === 'refusal') {
       return {
