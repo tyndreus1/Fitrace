@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAuth } from '../context/contexts'
-import Photo from '../components/Photo'
 import { PROFILE } from '../lib/config'
 
 export default function Login() {
@@ -19,14 +18,7 @@ export default function Login() {
     <div className="min-h-screen relative flex items-center justify-center px-4 py-8">
       <form onSubmit={handleSubmit} className="relative card card-glow w-full max-w-sm p-7 flex flex-col gap-5 fade-up">
         <div className="text-center">
-          <Photo
-            name="meditasyon"
-            fit="contain"
-            className="h-36 w-auto mx-auto mb-1"
-            rounded=""
-            fallback="🌸"
-            eager
-          />
+          <div className="text-4xl mb-2">🌸</div>
           <h1 className="text-2xl font-semibold pearl-text">{PROFILE.name}'nin Sağlık Günlüğü</h1>
           <p className="text-sm text-[var(--text-dim)] mt-1.5">
             Güçlenmek, dolgunlaşmak ve iyi hissetmek için kişisel alanın.

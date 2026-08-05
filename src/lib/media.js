@@ -15,8 +15,10 @@ export const PHOTOS = {
   su: { src: '/ozge/su.png', fallback: '💧', alt: 'Su içen Özge' },
   // Yürüyüş / antrenman
   yuruyus: { src: '/ozge/yuruyus.png', fallback: '🚶‍♀️', alt: 'Yürüyüş yapan Özge' },
-  // Meditasyon / sakinleşme
+  // Duygu durumu bölümü için
   meditasyon: { src: '/ozge/meditasyon.png', fallback: '🧘‍♀️', alt: 'Meditasyon yapan Özge' },
+  // Yemek günlüğü
+  yemek: { src: '/ozge/yemek.png', fallback: '🍽️', alt: 'Yemek yiyen Özge' },
   // Uyku
   uyku: { src: '/ozge/uyku.png', fallback: '😴', alt: 'Uyuyan Özge' },
 }

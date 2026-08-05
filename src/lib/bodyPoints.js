@@ -4,19 +4,21 @@
  * x / y değerleri görselin genişlik ve yüksekliğine oranla yüzdedir; şemanın
  * üzerindeki mavi hedef noktalarının merkezine denk gelir.
  */
+// Konumlar olcum.png (1696x2512) üzerindeki mavi hedef halkalarının
+// merkezlerinden ölçülerek alındı.
 export const BODY_POINTS = [
-  { key: 'neck_cm', label: 'Boyun', short: 'Boyun', x: 49.2, y: 22.0 },
+  { key: 'neck_cm', label: 'Boyun', short: 'Boyun', x: 49.1, y: 21.9 },
   { key: 'shoulders_cm', label: 'Omuzlar', short: 'Omuz', x: 63.6, y: 25.6 },
-  { key: 'chest_cm', label: 'Göğüs', short: 'Göğüs', x: 49.0, y: 33.1 },
-  { key: 'arm_cm', label: 'Pazı', short: 'Pazı', x: 34.6, y: 34.3 },
-  { key: 'waist_cm', label: 'Bel', short: 'Bel', x: 49.0, y: 44.5 },
-  { key: 'hips_cm', label: 'Kalça', short: 'Kalça', x: 48.7, y: 52.4, focus: true },
-  { key: 'thigh_cm', label: 'Üst bacak', short: 'Üst bacak', x: 59.8, y: 65.0, focus: true },
-  { key: 'calf_cm', label: 'Alt baldır', short: 'Baldır', x: 59.5, y: 80.6, focus: true },
+  { key: 'chest_cm', label: 'Göğüs', short: 'Göğüs', x: 49.1, y: 33.1 },
+  { key: 'arm_cm', label: 'Pazı', short: 'Pazı', x: 34.1, y: 34.1 },
+  { key: 'waist_cm', label: 'Bel', short: 'Bel', x: 49.1, y: 44.3 },
+  { key: 'hips_cm', label: 'Kalça', short: 'Kalça', x: 49.2, y: 51.9, focus: true },
+  { key: 'thigh_cm', label: 'Üst bacak', short: 'Üst bacak', x: 60.1, y: 64.1, focus: true },
+  { key: 'calf_cm', label: 'Alt baldır', short: 'Baldır', x: 59.9, y: 80.1, focus: true },
 ]
 
 // Şema görselinin en-boy oranı (genişlik / yükseklik)
-export const DIAGRAM_RATIO = '1352 / 1985'
+export const DIAGRAM_RATIO = '1696 / 2512'
 
 // Programın asıl büyütmeyi hedeflediği bölgeler
 export const FOCUS_KEYS = BODY_POINTS.filter((p) => p.focus).map((p) => p.key)

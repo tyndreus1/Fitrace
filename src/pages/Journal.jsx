@@ -74,6 +74,16 @@ export default function Journal() {
 
       {/* Bugünün kaydı */}
       <div className="card p-4 flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <Photo name="meditasyon" fit="contain" className="h-24 w-auto shrink-0" rounded="" hideOnError eager />
+          <div>
+            <p className="text-sm font-medium">Bugün nasılsın?</p>
+            <p className="text-xs text-[var(--text-dim)] mt-0.5">
+              Ruh hâlini işaretlemek, iyi ve kötü günlerin neye bağlı olduğunu zamanla görmeni sağlar.
+            </p>
+          </div>
+        </div>
+
         <div>
           <p className="text-sm font-medium mb-2">Ruh hâlin</p>
           <div className="flex justify-between gap-1.5">
@@ -133,10 +143,7 @@ export default function Journal() {
 
       {/* Zor gün rehberi */}
       <div>
-        <div className="flex items-center gap-3 mb-2">
-          <h3 className="font-medium text-sm flex-1">Zor bir gün mü?</h3>
-          <Photo name="meditasyon" fit="contain" className="h-20 w-auto shrink-0" rounded="" hideOnError eager />
-        </div>
+        <h3 className="font-medium text-sm mb-2">Zor bir gün mü?</h3>
         <div className="flex flex-col gap-2">
           {HARD_DAY_NOTES.map((n) => (
             <button

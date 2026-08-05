@@ -4,6 +4,7 @@ import { analyzeMeal } from '../lib/ai'
 import { sumItems } from '../lib/foodDb'
 import { formatTime } from '../lib/dates'
 import Ring from '../components/Ring'
+import Photo from '../components/Photo'
 
 const SLOTS = ['Kahvaltı', 'Ara öğün', 'Öğle', 'Atıştırmalık', 'Akşam', 'Gece']
 
@@ -92,9 +93,14 @@ export default function Food() {
 
   return (
     <div className="flex flex-col gap-5 fade-up">
-      <div>
-        <h2 className="text-lg font-semibold">Yemek günlüğü</h2>
-        <p className="text-sm text-[var(--text-dim)]">Ne yediysen normal cümlelerle yaz, kalorisini ben hesaplayayım.</p>
+      <div className="card p-4 flex items-center gap-3">
+        <div className="flex-1">
+          <h2 className="text-lg font-semibold">Yemek günlüğü</h2>
+          <p className="text-sm text-[var(--text-dim)]">
+            Ne yediysen normal cümlelerle yaz, kalorisini ben hesaplayayım.
+          </p>
+        </div>
+        <Photo name="yemek" fit="contain" className="h-24 w-auto shrink-0" rounded="" hideOnError eager />
       </div>
 
       <div className="card p-4">

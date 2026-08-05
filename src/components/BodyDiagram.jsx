@@ -17,7 +17,16 @@ export default function BodyDiagram({ activeKey, filledKeys, onSelect }) {
   if (failed) return null
 
   return (
-    <div className="relative mx-auto w-full" style={{ maxWidth: 300, aspectRatio: DIAGRAM_RATIO }}>
+    // Şema görselinin zemini beyaz (siyah etiket yazıları için gerekli), o yüzden
+    // koyu temanın içinde bilinçli bir "beyaz kart" gibi sunuluyor.
+    <div
+      className="relative mx-auto w-full rounded-2xl overflow-hidden bg-white"
+      style={{
+        maxWidth: 300,
+        aspectRatio: DIAGRAM_RATIO,
+        boxShadow: '0 8px 26px -14px rgba(236,72,153,0.75)',
+      }}
+    >
       <img
         src={meta.src}
         alt={meta.alt}
