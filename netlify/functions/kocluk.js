@@ -8,6 +8,21 @@ const MODELS = ['claude-opus-5', 'claude-sonnet-5']
 const TOTAL_BUDGET_MS = 8500
 const MIN_ATTEMPT_MS = 2500
 
+// Yanıtı şemayla kısıtlıyoruz: düşünme kapalıyken modelin iç muhakemesini
+// görünür metne sızdırma ihtimali kalmıyor, arayüz de her zaman tek bir
+// düz metin alanı render ediyor.
+const SCHEMA = {
+  type: 'object',
+  properties: {
+    message: {
+      type: 'string',
+      description: 'Kullanıcıya gösterilecek yanıt. Türkçe, 2-5 cümle, markdown başlığı yok.',
+    },
+  },
+  required: ['message'],
+  additionalProperties: false,
+}
+
 function isRetryableElsewhere(err) {
   const status = err?.status
   // Zaman aşımı ve bağlantı hataları da sıradaki modeli denemeye değer.
@@ -88,11 +103,14 @@ export const handler = async (event) => {
               { type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } },
               { type: 'text', text: contextNote },
             ],
-            // Yanıtlar kısa (2-5 cümle) ve sohbet gecikmeye duyarlı; düşük efor
-            // 10 saniyelik fonksiyon bütçesine sığmaya yardım ediyor. Düşünme
-            // açık kalıyor: koç metni doğrudan kullanıcıya gidiyor ve kapalıyken
-            // yanıta iç etiket sızma riski var.
-            output_config: { effort: 'low' },
+            // Sohbet gecikmeye duyarlı ve yanıtlar kısa (2-5 cümle). Düşünme
+            // açıkken yanıt 10 saniyelik Netlify bütçesine sığmıyordu; kapattık
+            // ve güvenliği çıktı şemasıyla sağladık.
+            thinking: { type: 'disabled' },
+            output_config: {
+              effort: 'low',
+              format: { type: 'json_schema', schema: SCHEMA },
+            },
             messages: history,
           },
           { timeout: remaining },
@@ -116,11 +134,20 @@ export const handler = async (event) => {
       }
     }
 
-    const message = response.content
+    const raw = response.content
       .filter((b) => b.type === 'text')
       .map((b) => b.text)
       .join('\n')
       .trim()
+
+    // Şema gereği JSON gelir; beklenmedik bir durumda ham metne düşüyoruz.
+    let message = raw
+    try {
+      const parsed = JSON.parse(raw)
+      if (typeof parsed?.message === 'string') message = parsed.message.trim()
+    } catch {
+      // ham metin kullanılacak
+    }
 
     return {
       statusCode: 200,
