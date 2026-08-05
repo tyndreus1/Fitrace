@@ -1,13 +1,29 @@
-import { BODY_POINTS } from '../lib/bodyPoints'
+import { useState } from 'react'
+import { BODY_POINTS, DIAGRAM_RATIO } from '../lib/bodyPoints'
+import { photo } from '../lib/media'
 
-export default function BodyDiagram({ activeKey, filledKeys, onSelect, color = 'var(--pink)' }) {
+/**
+ * Ölçüm şeması. Zemin görseli (`public/ozge/olcum.png`) noktaları ve
+ * etiketleri zaten üzerinde taşıyor; buradaki katman yalnızca seçili noktayı
+ * parlatıp doldurulmuş olanları işaretliyor.
+ *
+ * Görsel yoksa şema yerine sade bir düğme listesi gösteriliyor — sayfa her
+ * hâlükârda kullanılabilir kalıyor.
+ */
+export default function BodyDiagram({ activeKey, filledKeys, onSelect }) {
+  const meta = photo('olcum')
+  const [failed, setFailed] = useState(false)
+
+  if (failed) return null
+
   return (
-    <div className="relative mx-auto" style={{ width: 200, aspectRatio: '512 / 1536' }}>
+    <div className="relative mx-auto w-full" style={{ maxWidth: 300, aspectRatio: DIAGRAM_RATIO }}>
       <img
-        src="/body/female.png"
-        alt=""
-        className="absolute inset-0 w-full h-full pointer-events-none select-none"
+        src={meta.src}
+        alt={meta.alt}
+        onError={() => setFailed(true)}
         draggable={false}
+        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
       />
       {BODY_POINTS.map((p) => {
         const isActive = activeKey === p.key
@@ -19,21 +35,24 @@ export default function BodyDiagram({ activeKey, filledKeys, onSelect, color = '
             onClick={() => onSelect(p.key)}
             title={p.label}
             aria-label={p.label}
+            aria-pressed={isActive}
             className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all"
             style={{
               left: `${p.x}%`,
               top: `${p.y}%`,
-              width: isActive ? 22 : 14,
-              height: isActive ? 22 : 14,
-              background: isActive || isFilled ? color : 'rgba(255,255,255,0.35)',
-              boxShadow: isActive
-                ? `0 0 0 6px ${'rgba(236,72,153,0.30)'}, 0 0 16px 4px ${color}`
+              // Dokunma alanı, altındaki basılı noktadan geniş
+              width: 34,
+              height: 34,
+              background: isActive
+                ? 'rgba(236,72,153,0.30)'
                 : isFilled
-                  ? '0 0 0 3px rgba(236,72,153,0.25)'
-                  : p.focus
-                    ? '0 0 0 3px rgba(245,185,66,0.30)'
-                    : 'none',
-              border: '2px solid rgba(255,255,255,0.85)',
+                  ? 'rgba(52,211,153,0.22)'
+                  : 'transparent',
+              boxShadow: isActive
+                ? '0 0 0 3px var(--pink), 0 0 18px 4px rgba(236,72,153,0.55)'
+                : isFilled
+                  ? '0 0 0 2px var(--mint)'
+                  : 'none',
             }}
           />
         )

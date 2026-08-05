@@ -16,13 +16,17 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4">
-      <Photo name="login" className="absolute inset-0 w-full h-full opacity-25" rounded="rounded-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[rgba(23,16,26,0.75)] via-[rgba(23,16,26,0.85)] to-[var(--bg)]" />
-
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-8">
       <form onSubmit={handleSubmit} className="relative card card-glow w-full max-w-sm p-7 flex flex-col gap-5 fade-up">
         <div className="text-center">
-          <div className="text-4xl mb-2">🌸</div>
+          <Photo
+            name="meditasyon"
+            fit="contain"
+            className="h-36 w-auto mx-auto mb-1"
+            rounded=""
+            fallback="🌸"
+            eager
+          />
           <h1 className="text-2xl font-semibold pearl-text">{PROFILE.name}'nin Sağlık Günlüğü</h1>
           <p className="text-sm text-[var(--text-dim)] mt-1.5">
             Güçlenmek, dolgunlaşmak ve iyi hissetmek için kişisel alanın.

@@ -104,7 +104,8 @@ export default function Measure() {
         <>
           <form onSubmit={submitMeasurement} className="card p-4 flex flex-col items-center gap-4">
             <p className="text-xs text-[var(--text-dim)] text-center">
-              Bir bölgeye dokun, mezura ölçünü gir. Sarı halkalı noktalar programın büyütmeyi hedeflediği yerler.
+              Şemadaki bir noktaya (ya da aşağıdaki etikete) dokun, mezura ölçünü gir. Hepsini aynı anda
+              girmek zorunda değilsin.
             </p>
 
             <BodyDiagram activeKey={activeKey} filledKeys={filledKeys} onSelect={setActiveKey} />

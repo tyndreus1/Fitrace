@@ -17,6 +17,8 @@ export default function Photo({
   // Sayfanın altındaki görsellerde tembel yükleme, dosya yoksa hata olayının
   // hiç tetiklenmemesine yol açıyor; yedek içeriği göstermek için eager gerekir.
   eager = false,
+  // Şeffaf zeminli çizimler kırpılmamalı: 'contain' figürü olduğu gibi gösterir.
+  fit = 'cover',
 }) {
   const meta = name ? photo(name) : { src, alt, fallback }
   const [failed, setFailed] = useState(false)
@@ -46,7 +48,7 @@ export default function Photo({
         onFail?.(meta.src)
       }}
       loading={eager ? 'eager' : 'lazy'}
-      className={`object-cover ${rounded} ${className}`}
+      className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${rounded} ${className}`}
     />
   )
 }

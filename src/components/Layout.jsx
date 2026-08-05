@@ -1,7 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/contexts'
 import { PROFILE } from '../lib/config'
-import Photo from './Photo'
 
 const NAV = [
   { to: '/', label: 'Bugün', icon: '🏠' },
@@ -19,7 +18,13 @@ export default function Layout() {
     <div className="min-h-screen flex flex-col">
       <header className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] sticky top-0 z-10 backdrop-blur bg-[rgba(23,16,26,0.82)]">
         <div className="flex items-center gap-2.5">
-          <Photo name="avatar" className="w-9 h-9" rounded="rounded-full" />
+          <span
+            className="w-9 h-9 rounded-full flex items-center justify-center text-lg shrink-0"
+            style={{ background: 'linear-gradient(135deg, var(--pink), var(--pink-deep))' }}
+            aria-hidden="true"
+          >
+            🌸
+          </span>
           <div className="leading-tight">
             <p className="font-semibold text-sm">{PROFILE.name}'nin Günlüğü</p>
             <p className="text-[11px] text-[var(--text-dim)]">Güçlen, dolgunlaş, iyi hisset</p>

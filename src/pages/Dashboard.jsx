@@ -61,14 +61,16 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-5 fade-up">
-      {/* Kapak */}
-      <div className="relative overflow-hidden rounded-2xl">
-        <Photo name="hero" className="w-full h-36" rounded="rounded-2xl" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(23,16,26,0.94)] to-transparent" />
-        <div className="absolute bottom-3 left-4 right-4">
+      {/* Karşılama */}
+      <div className="card card-glow p-4 flex items-center gap-3 overflow-hidden">
+        <div className="flex-1">
           <p className="text-xs text-[var(--text-dim)]">{greeting()},</p>
-          <h2 className="text-xl font-semibold pearl-text">{PROFILE.name}</h2>
+          <h2 className="text-2xl font-semibold pearl-text">{PROFILE.name}</h2>
+          <p className="text-xs text-[var(--text-dim)] mt-1">
+            {loading ? 'Yükleniyor…' : `Hedefe ${Math.max(0, +(PROFILE.goalWeightKg - currentWeight).toFixed(1))} kg kaldı`}
+          </p>
         </div>
+        <Photo name="yuruyus" fit="contain" className="h-28 w-auto shrink-0" rounded="" />
       </div>
 
       {/* Günün notu */}
@@ -93,12 +95,15 @@ export default function Dashboard() {
           <Ring value={todaysTotals.protein} max={targets.protein} label="Protein (g)" color="var(--mint)" />
           <Ring value={todaysWater} max={targets.waterMl} label="Su (ml)" color="#60a5fa" />
         </div>
-        <div className="flex gap-2 mt-4">
-          {[200, 330, 500].map((ml) => (
-            <button key={ml} onClick={() => addWater(ml)} className="btn btn-ghost flex-1 text-xs py-2">
-              +{ml} ml su
-            </button>
-          ))}
+        <div className="flex items-center gap-2 mt-4">
+          <Photo name="su" fit="contain" className="h-16 w-auto shrink-0" rounded="" hideOnError eager />
+          <div className="flex gap-2 flex-1">
+            {[200, 330, 500].map((ml) => (
+              <button key={ml} onClick={() => addWater(ml)} className="btn btn-ghost flex-1 text-xs py-2">
+                +{ml} ml
+              </button>
+            ))}
+          </div>
         </div>
         <p className="text-[11px] text-[var(--text-dim)] mt-3">
           Karbonhidrat {Math.round(todaysTotals.carb)} / {targets.carb} g · Yağ {Math.round(todaysTotals.fat)} /{' '}

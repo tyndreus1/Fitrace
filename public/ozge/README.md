@@ -1,26 +1,38 @@
 # Görseller buraya
 
-Hazırladığın görselleri **bu klasöre** koy. Uygulama dosyaları buradaki
-isimlerle arar. Bir dosya yoksa sayfa yine çalışır — o alanda emoji/degrade
-görünür. Yani hepsini birden koymak zorunda değilsin.
+Özge'nin çizimleri **bu klasöre** konur. Uygulama dosyaları buradaki isimlerle
+arar. Bir dosya yoksa sayfa yine çalışır — o alan sessizce gizlenir ya da
+yerine emoji/degrade gelir. Yani hepsini birden koymak zorunda değilsin.
 
-## Beklenen dosya isimleri
+Hepsi **şeffaf zeminli PNG** olarak beklenir ve kırpılmadan, olduğu gibi
+gösterilir.
 
-| Dosya | Nerede görünür | Önerilen boyut |
+## Dosyalar
+
+| Dosya | Görsel | Nerede görünür |
 |---|---|---|
-| `login.jpg` | Giriş (şifre) ekranının arka planı | 1200 × 1600 (dikey) |
-| `avatar.jpg` | Üst bardaki küçük yuvarlak profil | 400 × 400 (kare) |
-| `hero.jpg` | "Bugün" sayfasının üst kapak görseli | 1600 × 900 (yatay) |
-| `hedef.jpg` | İlerleme kartındaki hedef görseli | 800 × 1000 |
-| `yemek.jpg` | Beslenme programı sayfası başlığı | 1600 × 900 |
-| `antrenman.jpg` | Antrenman sekmesi başlığı | 1600 × 900 |
-| `cilt.jpg` | Cilt bakımı bölümü başlığı | 1600 × 900 |
-| `galeri-1.jpg` … `galeri-8.jpg` | Motivasyon galerisi (kaç tane koyarsan o kadarı görünür) | 800 × 800 (kare) |
+| `olcum.png` | Ölçü noktaları etiketli tam boy şema | **Ölçüm** sayfasındaki interaktif şema — noktalara dokununca ölçü girilir |
+| `su.png` | Su içerken | "Bugün" sayfasında su takibi bölümü |
+| `yuruyus.png` | Yürüyüş (akıllı saate bakarken) | "Bugün" karşılama kartı ve Program → Antrenman başlığı |
+| `meditasyon.png` | Meditasyon (bağdaş kurmuş) | Giriş ekranı ve Günce → "Zor bir gün mü?" |
+| `uyku.png` | Uyurken | Günce → uyku hatırlatması |
+| `galeri-1.png` … `galeri-8.png` | Serbest | Günce → motivasyon panosu (kaç tane koyarsan o kadarı görünür) |
+
+## `olcum.png` hakkında
+
+Bu görselin üzerindeki mavi noktalar ve etiketler (BOYUN, OMUZLAR, GÖĞÜS,
+PAZI, BEL, KALÇA, ÜST BACAK, ALT BALDIR) uygulamanın ölçüm alanlarıyla birebir
+eşleşir. Uygulama görselin üstüne kendi noktalarını çizmez; sadece seçili olanı
+parlatır ve doldurulmuş olanları yeşil halkayla işaretler.
+
+Nokta konumları `src/lib/bodyPoints.js` içinde yüzde olarak tutulur. Görseli
+değiştirirsen (nokta yerleri kayarsa) oradaki `x` / `y` değerlerini ve
+`DIAGRAM_RATIO` en-boy oranını güncellemek gerekir.
 
 ## Notlar
 
-- Uzantı `.jpg` olmalı. Elindeki dosya PNG ise ya `.jpg`'ye çevir ya da
-  `src/lib/media.js` içindeki yolları `.png` olarak güncelle.
+- Uzantı `.png` olmalı. Farklı bir uzantı kullanacaksan `src/lib/media.js`
+  içindeki yolları güncelle.
 - Dosyaları küçültmeye çalış (her biri ideal olarak 300 KB altı) — sayfa
   telefonda daha hızlı açılır.
 - Bu klasördeki her şey herkese açık olarak yayınlanır (site linkine sahip

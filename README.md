@@ -33,9 +33,15 @@ kimlik doğrulama değildir.
 
 ## Görseller
 
-Hazırladığın görselleri `public/ozge/` klasörüne koy. Beklenen dosya adları ve
-boyutlar `public/ozge/README.md` içinde listeli. Bir dosya yoksa sayfa yine
-çalışır — o alanda yumuşak bir degrade + emoji görünür.
+Özge'nin çizimleri `public/ozge/` klasörüne konur (şeffaf zeminli PNG):
+`olcum.png`, `su.png`, `yuruyus.png`, `meditasyon.png`, `uyku.png` ve isteğe
+bağlı `galeri-1.png` … `galeri-8.png`. Tam liste ve hangi görselin nerede
+göründüğü `public/ozge/README.md` içinde.
+
+`olcum.png` özel: üzerindeki etiketli noktalar ölçüm sayfasının interaktif
+şemasıdır. Nokta konumları `src/lib/bodyPoints.js` içinde yüzde olarak tutulur.
+
+Bir dosya yoksa sayfa yine çalışır; o alan gizlenir ya da yerine emoji gelir.
 
 ## Kurulum
 

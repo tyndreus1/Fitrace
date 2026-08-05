@@ -48,15 +48,11 @@ function NutritionTab() {
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-2xl">
-        <Photo name="food" className="w-full h-28" rounded="rounded-2xl" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(23,16,26,0.94)] to-transparent" />
-        <div className="absolute bottom-3 left-4">
-          <h3 className="font-semibold pearl-text">Haftalık beslenme programı</h3>
-          <p className="text-[11px] text-[var(--text-dim)]">
-            Günlük hedef: {targets.kcal} kcal · {targets.protein} g protein
-          </p>
-        </div>
+      <div className="card p-4">
+        <h3 className="font-semibold pearl-text">Haftalık beslenme programı</h3>
+        <p className="text-[11px] text-[var(--text-dim)] mt-0.5">
+          Günlük hedef: {targets.kcal} kcal · {targets.protein} g protein
+        </p>
       </div>
 
       <div className="card p-4">
@@ -141,13 +137,12 @@ function WorkoutTab() {
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-2xl">
-        <Photo name="workout" className="w-full h-28" rounded="rounded-2xl" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(23,16,26,0.94)] to-transparent" />
-        <div className="absolute bottom-3 left-4">
+      <div className="card p-4 flex items-center gap-3">
+        <div className="flex-1">
           <h3 className="font-semibold pearl-text">Haftalık antrenman</h3>
-          <p className="text-[11px] text-[var(--text-dim)]">Kalça ve bacak öncelikli hipertrofi</p>
+          <p className="text-[11px] text-[var(--text-dim)] mt-0.5">Kalça ve bacak öncelikli hipertrofi</p>
         </div>
+        <Photo name="yuruyus" fit="contain" className="h-24 w-auto shrink-0" rounded="" hideOnError eager />
       </div>
 
       <div className="flex flex-col gap-2">

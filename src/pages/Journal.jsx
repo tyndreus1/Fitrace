@@ -133,7 +133,10 @@ export default function Journal() {
 
       {/* Zor gün rehberi */}
       <div>
-        <h3 className="font-medium text-sm mb-2">Zor bir gün mü?</h3>
+        <div className="flex items-center gap-3 mb-2">
+          <h3 className="font-medium text-sm flex-1">Zor bir gün mü?</h3>
+          <Photo name="meditasyon" fit="contain" className="h-20 w-auto shrink-0" rounded="" hideOnError eager />
+        </div>
         <div className="flex flex-col gap-2">
           {HARD_DAY_NOTES.map((n) => (
             <button
@@ -180,12 +183,20 @@ export default function Journal() {
         </div>
       </div>
 
-      {/* Cilt bölümü */}
-      <div className="relative overflow-hidden rounded-2xl">
-        <Photo name="skin" className="w-full h-24" rounded="rounded-2xl" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(23,16,26,0.94)] to-transparent" />
-        <h3 className="absolute bottom-3 left-4 font-semibold pearl-text">Cilt notları</h3>
+      {/* Uyku hatırlatması */}
+      <div className="card p-4 flex items-center gap-3">
+        <Photo name="uyku" fit="contain" className="h-20 w-auto shrink-0" rounded="" hideOnError eager />
+        <div>
+          <p className="text-sm font-medium">Uyku</p>
+          <p className="text-xs text-[var(--text-dim)] leading-relaxed mt-0.5">
+            Kaslar antrenmanda değil uykuda büyür. 7-9 saat hedefle; uyku hem hormonal dengeyi hem cildi
+            toparlıyor.
+          </p>
+        </div>
       </div>
+
+      {/* Cilt bölümü */}
+      <h3 className="font-semibold pearl-text">Cilt notları</h3>
       <div className="flex flex-col gap-2">
         {SKIN_TIPS.map((t) => (
           <div key={t.title} className="card p-3.5 flex gap-3">
@@ -207,7 +218,7 @@ export default function Journal() {
             <p className="text-sm mt-1">Pano henüz boş</p>
             <p className="text-xs text-[var(--text-dim)] mt-1 leading-relaxed">
               Seni motive eden görselleri <code>public/ozge/</code> klasörüne{' '}
-              <code>galeri-1.jpg</code> … <code>galeri-8.jpg</code> adlarıyla koy, burada görünsünler.
+              <code>galeri-1.png</code> … <code>galeri-8.png</code> adlarıyla koy, burada görünsünler.
             </p>
           </div>
         ) : (

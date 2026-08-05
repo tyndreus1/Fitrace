@@ -2,23 +2,28 @@
  * Görsel kataloğu.
  *
  * Dosyalar `public/ozge/` klasörüne konur ve buradaki isimlerle eşleşir.
- * Bir dosya yoksa uygulama kırılmaz; `Photo` bileşeni onun yerine
- * yedek (emoji + degrade) gösterir. Yani görselleri istediğin zaman,
- * istediğin sırayla ekleyebilirsin.
+ * Hepsi şeffaf zeminli çizim (PNG) olduğu için kırpılmadan, yumuşak bir
+ * zeminin üstünde "figür" gibi gösterilirler.
+ *
+ * Bir dosya yoksa uygulama kırılmaz; `Photo` bileşeni yerine yedek
+ * (degrade + emoji) koyar.
  */
 export const PHOTOS = {
-  login: { src: '/ozge/login.jpg', fallback: '🌸', alt: 'Giriş görseli' },
-  avatar: { src: '/ozge/avatar.jpg', fallback: '💗', alt: 'Özge' },
-  hero: { src: '/ozge/hero.jpg', fallback: '✨', alt: 'Kapak görseli' },
-  goal: { src: '/ozge/hedef.jpg', fallback: '🎯', alt: 'Hedef görseli' },
-  food: { src: '/ozge/yemek.jpg', fallback: '🍽️', alt: 'Beslenme görseli' },
-  workout: { src: '/ozge/antrenman.jpg', fallback: '🏋️‍♀️', alt: 'Antrenman görseli' },
-  skin: { src: '/ozge/cilt.jpg', fallback: '🧴', alt: 'Cilt bakımı görseli' },
+  // Ölçüm noktalarının işaretli olduğu tam boy şema
+  olcum: { src: '/ozge/olcum.png', fallback: '📏', alt: 'Ölçü alma noktaları' },
+  // Su içerken
+  su: { src: '/ozge/su.png', fallback: '💧', alt: 'Su içen Özge' },
+  // Yürüyüş / antrenman
+  yuruyus: { src: '/ozge/yuruyus.png', fallback: '🚶‍♀️', alt: 'Yürüyüş yapan Özge' },
+  // Meditasyon / sakinleşme
+  meditasyon: { src: '/ozge/meditasyon.png', fallback: '🧘‍♀️', alt: 'Meditasyon yapan Özge' },
+  // Uyku
+  uyku: { src: '/ozge/uyku.png', fallback: '😴', alt: 'Uyuyan Özge' },
 }
 
-// Motivasyon galerisi: public/ozge/galeri-1.jpg ... galeri-8.jpg
+// Motivasyon galerisi: public/ozge/galeri-1.png ... galeri-8.png
 export const GALLERY = Array.from({ length: 8 }, (_, i) => ({
-  src: `/ozge/galeri-${i + 1}.jpg`,
+  src: `/ozge/galeri-${i + 1}.png`,
   alt: `Motivasyon görseli ${i + 1}`,
 }))
 
