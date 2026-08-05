@@ -1,90 +1,59 @@
 import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/contexts'
+import Photo from '../components/Photo'
+import { PROFILE } from '../lib/config'
 
 export default function Login() {
-  const { allProfiles, login, loading } = useAuth()
-  const [selected, setSelected] = useState(null)
-  const [pin, setPin] = useState('')
+  const { login } = useAuth()
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault()
-    setError('')
-    setBusy(true)
-    const { error } = await login(selected.id, pin)
-    setBusy(false)
-    if (error) setError(error)
-  }
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-text-dim">Loading…</div>
+    const { error } = login(password)
+    setError(error || '')
+    if (error) setPassword('')
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 gap-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-semibold tracking-tight" style={{ color: 'var(--text)' }}>
-          🏁 Fit Race
-        </h1>
-        <p className="text-[var(--text-dim)] mt-1">Witch vs Polar Bear</p>
-      </div>
+    <div className="min-h-screen relative flex items-center justify-center px-4">
+      <Photo name="login" className="absolute inset-0 w-full h-full opacity-25" rounded="rounded-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[rgba(23,16,26,0.75)] via-[rgba(23,16,26,0.85)] to-[var(--bg)]" />
 
-      {!selected ? (
-        <div className="grid grid-cols-2 gap-6">
-          {allProfiles.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setSelected(p)}
-              className="card flex flex-col items-center gap-3 px-10 py-10 hover:scale-[1.03] transition-transform"
-              style={{ borderColor: p.color }}
-            >
-              <span className="text-5xl">{p.avatar}</span>
-              <span className="text-lg font-medium" style={{ color: p.color }}>
-                {p.display_name}
-              </span>
-            </button>
-          ))}
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="card flex flex-col items-center gap-4 px-8 py-8 w-72">
-          <span className="text-4xl">{selected.avatar}</span>
-          <p className="font-medium" style={{ color: selected.color }}>
-            {selected.display_name}
+      <form onSubmit={handleSubmit} className="relative card card-glow w-full max-w-sm p-7 flex flex-col gap-5 fade-up">
+        <div className="text-center">
+          <div className="text-4xl mb-2">🌸</div>
+          <h1 className="text-2xl font-semibold pearl-text">{PROFILE.name}'nin Sağlık Günlüğü</h1>
+          <p className="text-sm text-[var(--text-dim)] mt-1.5">
+            Güçlenmek, dolgunlaşmak ve iyi hissetmek için kişisel alanın.
           </p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="password" className="text-xs text-[var(--text-dim)]">
+            Şifre
+          </label>
           <input
+            id="password"
             type="password"
-            inputMode="numeric"
             autoFocus
-            placeholder="PIN"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            className="w-full text-center text-lg rounded-lg bg-[var(--bg-soft)] border border-[var(--border)] py-2 outline-none focus:border-[var(--text-dim)]"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="input text-center tracking-widest"
           />
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          <div className="flex gap-2 w-full">
-            <button
-              type="button"
-              onClick={() => {
-                setSelected(null)
-                setPin('')
-                setError('')
-              }}
-              className="flex-1 rounded-lg border border-[var(--border)] py-2 text-[var(--text-dim)]"
-            >
-              Back
-            </button>
-            <button
-              type="submit"
-              disabled={busy || !pin}
-              className="flex-1 rounded-lg py-2 font-medium text-white disabled:opacity-50"
-              style={{ background: selected.color }}
-            >
-              Log in
-            </button>
-          </div>
-        </form>
-      )}
+          {error && <p className="text-sm text-[var(--pink-soft)] text-center">{error}</p>}
+        </div>
+
+        <button type="submit" disabled={!password} className="btn btn-primary w-full">
+          Gir
+        </button>
+
+        <p className="text-[11px] text-[var(--text-dim)] text-center leading-relaxed">
+          Bu sayfa tıbbi tavsiye vermez; kişisel takip içindir.
+        </p>
+      </form>
     </div>
   )
 }

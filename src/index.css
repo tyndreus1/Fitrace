@@ -1,50 +1,154 @@
 @import "tailwindcss";
 
 :root {
-  --witch: #a855f7;
-  --witch-dark: #7e22ce;
-  --bear: #0ea5e9;
-  --bear-dark: #0369a1;
-  --bg: #0b0d14;
-  --bg-soft: #12151f;
-  --card: #161a26;
-  --border: #232838;
-  --text: #e7e9f0;
-  --text-dim: #8b92a8;
+  --pink: #ec4899;
+  --pink-soft: #f9a8d4;
+  --pink-deep: #be185d;
+  --pearl: #fdf2f8;
+  --gold: #f5b942;
+  --mint: #34d399;
+
+  --bg: #17101a;
+  --bg-soft: #1f1522;
+  --card: #251a29;
+  --card-hi: #2e2033;
+  --border: #3a2740;
+  --text: #f6ecf3;
+  --text-dim: #b09aad;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #root {
   background:
-    radial-gradient(circle at 15% 0%, rgba(168, 85, 247, 0.10), transparent 40%),
-    radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.10), transparent 40%),
+    radial-gradient(circle at 12% -5%, rgba(236, 72, 153, 0.22), transparent 45%),
+    radial-gradient(circle at 92% 8%, rgba(245, 185, 66, 0.12), transparent 42%),
+    radial-gradient(circle at 50% 100%, rgba(190, 24, 93, 0.14), transparent 55%),
     var(--bg);
 }
 
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
 .card {
-  background: var(--card);
+  background: linear-gradient(160deg, var(--card-hi), var(--card));
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 20px;
 }
 
-.witch-grad {
-  background: linear-gradient(135deg, var(--witch), var(--witch-dark));
+.card-glow {
+  box-shadow: 0 10px 30px -18px rgba(236, 72, 153, 0.9);
 }
-.bear-grad {
-  background: linear-gradient(135deg, var(--bear), var(--bear-dark));
+
+.pink-grad {
+  background: linear-gradient(135deg, var(--pink), var(--pink-deep));
+}
+
+.pearl-text {
+  background: linear-gradient(120deg, #fff, var(--pink-soft) 55%, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.input {
+  width: 100%;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+  color: var(--text);
+  outline: none;
+  font-size: 0.95rem;
+}
+.input:focus {
+  border-color: var(--pink-soft);
+}
+.input::placeholder {
+  color: var(--text-dim);
+}
+
+.btn {
+  border-radius: 12px;
+  padding: 0.6rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.5;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--pink), var(--pink-deep));
+  color: #fff;
+}
+
+.btn-ghost {
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--pink-soft);
+}
+
+.chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.chip-on {
+  border-color: var(--pink);
+  color: var(--text);
+  background: rgba(236, 72, 153, 0.16);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fadeUp 0.35s ease both;
+}
+
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.pulse-soft {
+  animation: pulseSoft 1.4s ease-in-out infinite;
 }

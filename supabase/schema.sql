@@ -1,21 +1,13 @@
--- Fit Race schema — run this in Supabase SQL editor
-
-create table if not exists profiles (
-  id text primary key,              -- 'witch' | 'polar_bear'
-  display_name text not null,
-  pin text not null,
-  color text not null,
-  avatar text not null,
-  water_goal_ml int not null default 2500,
-  start_weight_kg numeric,
-  goal_weight_kg numeric,
-  height_cm numeric,
-  created_at timestamptz default now()
-);
+-- Özge'nin Sağlık Günlüğü — Supabase şeması
+-- Supabase SQL Editor'a yapıştırıp çalıştır.
+--
+-- NOT: Supabase kurmak ZORUNLU DEĞİL. Ortam değişkenleri tanımlı değilse
+-- uygulama tüm kayıtları tarayıcıda (localStorage) tutar. Supabase'i sadece
+-- telefon + bilgisayar arasında senkron istiyorsan kur.
 
 create table if not exists weight_logs (
   id uuid primary key default gen_random_uuid(),
-  profile_id text not null references profiles(id) on delete cascade,
+  profile_id text not null default 'ozge',
   log_date date not null,
   weight_kg numeric not null,
   created_at timestamptz default now(),
@@ -24,57 +16,91 @@ create table if not exists weight_logs (
 
 create table if not exists measurements (
   id uuid primary key default gen_random_uuid(),
-  profile_id text not null references profiles(id) on delete cascade,
+  profile_id text not null default 'ozge',
   log_date date not null,
-  waist_cm numeric,
+  neck_cm numeric,
   chest_cm numeric,
   under_chest_cm numeric,
+  waist_cm numeric,
   belly_cm numeric,
   hips_cm numeric,
   arm_cm numeric,
   wrist_cm numeric,
   thigh_cm numeric,
   calf_cm numeric,
-  neck_cm numeric,
-  body_fat_pct numeric,
   created_at timestamptz default now(),
   unique (profile_id, log_date)
 );
 
+create table if not exists meals (
+  id uuid primary key default gen_random_uuid(),
+  profile_id text not null default 'ozge',
+  log_date date not null,
+  meal_slot text,
+  note text,
+  kcal int default 0,
+  protein_g numeric default 0,
+  carb_g numeric default 0,
+  fat_g numeric default 0,
+  items jsonb default '[]'::jsonb,
+  source text,
+  created_at timestamptz default now()
+);
+
 create table if not exists water_logs (
   id uuid primary key default gen_random_uuid(),
-  profile_id text not null references profiles(id) on delete cascade,
+  profile_id text not null default 'ozge',
   log_date date not null,
   amount_ml int not null,
-  logged_at timestamptz default now()
+  logged_at timestamptz default now(),
+  created_at timestamptz default now()
 );
 
-create table if not exists badges_earned (
+-- Ruh hâli / cilt / serbest not
+create table if not exists journal (
   id uuid primary key default gen_random_uuid(),
-  profile_id text not null references profiles(id) on delete cascade,
-  badge_key text not null,
-  earned_at timestamptz default now(),
-  unique (profile_id, badge_key)
+  profile_id text not null default 'ozge',
+  log_date date not null,
+  mood int,
+  skin int,
+  note text,
+  created_at timestamptz default now(),
+  unique (profile_id, log_date)
 );
 
-alter table profiles enable row level security;
+create table if not exists chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  profile_id text not null default 'ozge',
+  role text not null,
+  content text not null,
+  created_at timestamptz default now()
+);
+
+create index if not exists meals_date_idx on meals (profile_id, log_date);
+create index if not exists water_date_idx on water_logs (profile_id, log_date);
+create index if not exists chat_created_idx on chat_messages (profile_id, created_at);
+
 alter table weight_logs enable row level security;
 alter table measurements enable row level security;
+alter table meals enable row level security;
 alter table water_logs enable row level security;
-alter table badges_earned enable row level security;
+alter table journal enable row level security;
+alter table chat_messages enable row level security;
 
--- Open policies: this app uses its own PIN check in the client, not Supabase auth.
--- Anyone with the anon key can read/write. Fine for a 2-person private app behind a PIN screen.
-create policy "public read profiles" on profiles for select using (true);
-create policy "public write profiles" on profiles for update using (true);
-create policy "public all weight_logs" on weight_logs for all using (true) with check (true);
-create policy "public all measurements" on measurements for all using (true) with check (true);
-create policy "public all water_logs" on water_logs for all using (true) with check (true);
-create policy "public all badges_earned" on badges_earned for all using (true) with check (true);
+-- Bu uygulama Supabase kimlik doğrulaması kullanmaz; giriş, istemci tarafındaki
+-- şifre ekranıyla yapılır. Dolayısıyla anon anahtarı bilen herkes okuyup
+-- yazabilir. Tek kişilik, gizli bir link için yeterli; daha fazlası gerekiyorsa
+-- Supabase Auth'a geçilmeli.
+drop policy if exists "acik weight_logs" on weight_logs;
+drop policy if exists "acik measurements" on measurements;
+drop policy if exists "acik meals" on meals;
+drop policy if exists "acik water_logs" on water_logs;
+drop policy if exists "acik journal" on journal;
+drop policy if exists "acik chat_messages" on chat_messages;
 
--- Seed the two profiles — CHANGE THE PINS before deploying.
-insert into profiles (id, display_name, pin, color, avatar, water_goal_ml, start_weight_kg, goal_weight_kg, height_cm)
-values
-  ('witch', 'Witch', '1234', '#a855f7', '🧙‍♀️', 2200, null, null, null),
-  ('polar_bear', 'Polar Bear', '5678', '#0ea5e9', '🐻‍❄️', 3000, null, null, null)
-on conflict (id) do nothing;
+create policy "acik weight_logs" on weight_logs for all using (true) with check (true);
+create policy "acik measurements" on measurements for all using (true) with check (true);
+create policy "acik meals" on meals for all using (true) with check (true);
+create policy "acik water_logs" on water_logs for all using (true) with check (true);
+create policy "acik journal" on journal for all using (true) with check (true);
+create policy "acik chat_messages" on chat_messages for all using (true) with check (true);
