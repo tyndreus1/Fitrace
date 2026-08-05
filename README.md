@@ -85,8 +85,18 @@ depoyu bağlaman yeterli.
 | `netlify/functions/analiz.js` | Serbest metinden öğünü kalemlere ayırır, kalori/makro tahmini döner (yapılandırılmış JSON çıktı) |
 | `netlify/functions/kocluk.js` | Kullanıcının güncel kayıtlarını bağlam alarak koç yanıtı üretir |
 
-İkisi de resmî Anthropic SDK'sını kullanır. Fonksiyona ulaşılamazsa arayüz
-sessizce yerel yedeğe düşer; hata ekranı çıkmaz.
+İkisi de resmî Anthropic SDK'sını kullanır ve şu davranışa sahiptir:
+
+- **Model yedeklemesi:** önce `claude-opus-5` denenir; API aşırı yüklenmiş
+  (429/5xx) dönerse `claude-sonnet-5` denenir. Diğer hatalar gizlenmez.
+- **Süre bütçesi:** her istek toplam 22 saniyeyle sınırlı, kalan süre modeller
+  arasında paylaştırılır. `AI_BUDGET_MS` ortam değişkeniyle değiştirilebilir.
+  (Ölçüm: bu projede 16 saniyelik yanıtlar sorunsuz döndü.) Tipik süreler —
+  öğün analizi 7-11 sn, koç yanıtı 12-17 sn.
+- **Hata yanıtı**, hangi modellerin denendiğini ve ne kadar sürdüğünü `tried`
+  alanında döner; sorun ararken buraya bakmak yeterli.
+
+Fonksiyona ulaşılamazsa arayüz sessizce yerel yedeğe düşer; hata ekranı çıkmaz.
 
 ## Hesaplamalar
 
