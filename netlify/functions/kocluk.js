@@ -4,8 +4,14 @@ import Anthropic from '@anthropic-ai/sdk'
 // geçiyoruz — sohbet yoğunluk yüzünden tamamen kesilmesin.
 const MODELS = ['claude-opus-5', 'claude-sonnet-5']
 
+// Netlify eşzamanlı fonksiyon sınırı 10 saniye; altında kalıyoruz.
+const TOTAL_BUDGET_MS = 8500
+const MIN_ATTEMPT_MS = 2500
+
 function isRetryableElsewhere(err) {
   const status = err?.status
+  // Zaman aşımı ve bağlantı hataları da sıradaki modeli denemeye değer.
+  if (err?.name === 'APIConnectionTimeoutError' || err?.name === 'APIConnectionError') return true
   return status === 429 || (typeof status === 'number' && status >= 500)
 }
 
@@ -63,29 +69,39 @@ export const handler = async (event) => {
   try {
     // Netlify eşzamanlı fonksiyonları 10 saniyede kesilir; zaman aşımını bunun
     // altında tutup kendi hata yanıtımızı dönüyoruz (arayüz yedek metne düşer).
-    const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 6500 })
+    // Bütçeyi biz yönetiyoruz: SDK'nın yeniden denemesi kapalı, her model
+    // denemesine kalan süre veriliyor.
+    const client = new Anthropic({ apiKey, maxRetries: 0 })
+    const startedAt = Date.now()
 
     let response
     let lastError
     for (const model of MODELS) {
+      const remaining = TOTAL_BUDGET_MS - (Date.now() - startedAt)
+      if (remaining < MIN_ATTEMPT_MS) break
       try {
-        response = await client.messages.create({
-          model,
-          max_tokens: 4000,
-          system: [
-            { type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } },
-            { type: 'text', text: contextNote },
-          ],
-          // Yanıtlar kısa (2-5 cümle) ve sohbet gecikmeye duyarlı; düşük efor
-          // 10 saniyelik fonksiyon bütçesine rahat sığıyor.
-          output_config: { effort: 'low' },
-          messages: history,
-        })
+        response = await client.messages.create(
+          {
+            model,
+            max_tokens: 2000,
+            system: [
+              { type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } },
+              { type: 'text', text: contextNote },
+            ],
+            // Yanıtlar kısa (2-5 cümle) ve sohbet gecikmeye duyarlı; düşük efor
+            // 10 saniyelik fonksiyon bütçesine sığmaya yardım ediyor. Düşünme
+            // açık kalıyor: koç metni doğrudan kullanıcıya gidiyor ve kapalıyken
+            // yanıta iç etiket sızma riski var.
+            output_config: { effort: 'low' },
+            messages: history,
+          },
+          { timeout: remaining },
+        )
         break
       } catch (err) {
         lastError = err
         if (!isRetryableElsewhere(err)) throw err
-        console.warn(`${model} yanıt veremedi (${err?.status}), sıradaki model deneniyor`)
+        console.warn(`${model} yanıt veremedi (${err?.status || err?.name}), sıradaki model deneniyor`)
       }
     }
     if (!response) throw lastError

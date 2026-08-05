@@ -4,8 +4,14 @@ import Anthropic from '@anthropic-ai/sdk'
 // geçiyoruz — kullanıcı yoğunluk yüzünden analizsiz kalmasın.
 const MODELS = ['claude-opus-5', 'claude-sonnet-5']
 
+// Netlify eşzamanlı fonksiyon sınırı 10 saniye; altında kalıyoruz.
+const TOTAL_BUDGET_MS = 8500
+const MIN_ATTEMPT_MS = 2500
+
 function isRetryableElsewhere(err) {
   const status = err?.status
+  // Zaman aşımı ve bağlantı hataları da sıradaki modeli denemeye değer.
+  if (err?.name === 'APIConnectionTimeoutError' || err?.name === 'APIConnectionError') return true
   return status === 429 || (typeof status === 'number' && status >= 500)
 }
 
@@ -77,31 +83,41 @@ Bugünkü durum — hedef: ${hedef.kcal ?? '?'} kcal / ${hedef.protein ?? '?'} g
   } kcal / ${alinan.protein ?? 0} g protein.`
 
   try {
-    // Netlify eşzamanlı fonksiyonları 10 saniyede kesilir. Kendi zaman aşımımızı
-    // bunun altında tutuyoruz ki düzgün bir JSON hatası dönebilelim; arayüz de
-    // bunu görüp yerel besin tablosuna düşsün.
-    const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 6500 })
+    // Netlify eşzamanlı fonksiyonları 10 saniyede kesilir. Bütçeyi biz
+    // yönetiyoruz: SDK'nın kendi yeniden denemesi kapalı, her model denemesine
+    // kalan süre veriliyor. Süre biterse düzgün bir JSON hatası dönüyoruz ve
+    // arayüz yerel besin tablosuna düşüyor.
+    const client = new Anthropic({ apiKey, maxRetries: 0 })
+    const startedAt = Date.now()
 
     let response
     let lastError
     for (const model of MODELS) {
+      const remaining = TOTAL_BUDGET_MS - (Date.now() - startedAt)
+      if (remaining < MIN_ATTEMPT_MS) break
       try {
-        response = await client.messages.create({
-          model,
-          max_tokens: 4000,
-          system: SYSTEM,
-          // Kısa ve iyi tanımlı bir görev; düşük efor hem hızlı hem yeterli.
-          output_config: {
-            effort: 'low',
-            format: { type: 'json_schema', schema: SCHEMA },
+        response = await client.messages.create(
+          {
+            model,
+            max_tokens: 2000,
+            system: SYSTEM,
+            // Besinleri ayırıp tablodan değer okumak muhakeme değil çıkarım işi;
+            // düşünme kapalıyken yanıt saniyeler yerine çok daha hızlı geliyor ve
+            // çıktı zaten şemayla kısıtlı olduğu için serbest metin sızma riski yok.
+            thinking: { type: 'disabled' },
+            output_config: {
+              effort: 'low',
+              format: { type: 'json_schema', schema: SCHEMA },
+            },
+            messages: [{ role: 'user', content: prompt }],
           },
-          messages: [{ role: 'user', content: prompt }],
-        })
+          { timeout: remaining },
+        )
         break
       } catch (err) {
         lastError = err
         if (!isRetryableElsewhere(err)) throw err
-        console.warn(`${model} yanıt veremedi (${err?.status}), sıradaki model deneniyor`)
+        console.warn(`${model} yanıt veremedi (${err?.status || err?.name}), sıradaki model deneniyor`)
       }
     }
     if (!response) throw lastError
