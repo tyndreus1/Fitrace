@@ -54,7 +54,9 @@ export const handler = async (event) => {
   const contextNote = `[Güncel kayıtlar — yanıtını bunlara dayandır]\n${JSON.stringify(context)}`
 
   try {
-    const client = new Anthropic({ apiKey })
+    // Netlify eşzamanlı fonksiyonları 10 saniyede kesilir; zaman aşımını bunun
+    // altında tutup kendi hata yanıtımızı dönüyoruz (arayüz yedek metne düşer).
+    const client = new Anthropic({ apiKey, maxRetries: 2, timeout: 8500 })
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: 4000,
@@ -62,7 +64,9 @@ export const handler = async (event) => {
         { type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } },
         { type: 'text', text: contextNote },
       ],
-      output_config: { effort: 'medium' },
+      // Yanıtlar kısa (2-5 cümle) ve sohbet gecikmeye duyarlı; düşük efor
+      // 10 saniyelik fonksiyon bütçesine rahat sığıyor.
+      output_config: { effort: 'low' },
       messages: history,
     })
 

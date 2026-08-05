@@ -9,12 +9,19 @@ import { estimateFromText } from './foodDb'
 
 const FN = '/.netlify/functions'
 
+// Netlify fonksiyonu 10 saniyede kesiliyor; biraz payla bekleyip vazgeçiyoruz
+// ki arayüz sonsuza kadar "hesaplanıyor" demesin.
+const TIMEOUT_MS = 13000
+
 async function callFunction(name, payload) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
     const res = await fetch(`${FN}/${name}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     })
     if (!res.ok) {
       const detail = await res.text().catch(() => '')
@@ -24,6 +31,8 @@ async function callFunction(name, payload) {
     return { ok: true, data }
   } catch (err) {
     return { ok: false, error: String(err) }
+  } finally {
+    clearTimeout(timer)
   }
 }
 
@@ -72,7 +81,7 @@ export async function askCoach(messages, context) {
   return {
     ok: false,
     message:
-      'Şu an koça bağlanamadım (internet ya da sunucu ayarı eksik olabilir). ' +
+      'Şu an koça bağlanamadım — bağlantı ya da geçici bir yoğunluk olabilir, birazdan tekrar dene. ' +
       'Bu arada "Program" sekmesindeki beslenme ve antrenman rehberi hep burada — ' +
       've bugünün motivasyon notunu "Günce" sekmesinde bulabilirsin.',
   }

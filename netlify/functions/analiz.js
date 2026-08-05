@@ -70,7 +70,10 @@ Bugünkü durum — hedef: ${hedef.kcal ?? '?'} kcal / ${hedef.protein ?? '?'} g
   } kcal / ${alinan.protein ?? 0} g protein.`
 
   try {
-    const client = new Anthropic({ apiKey })
+    // Netlify eşzamanlı fonksiyonları 10 saniyede kesilir. Kendi zaman aşımımızı
+    // bunun altında tutuyoruz ki düzgün bir JSON hatası dönebilelim; arayüz de
+    // bunu görüp yerel besin tablosuna düşsün.
+    const client = new Anthropic({ apiKey, maxRetries: 2, timeout: 8500 })
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: 4000,
