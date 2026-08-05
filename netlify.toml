@@ -3,6 +3,14 @@
   publish = "dist"
   functions = "netlify/functions"
 
+# Var olan görseller normal şekilde sunulur (statik dosyalar yönlendirmeden
+# önce gelir). Olmayanlar ise aşağıdaki SPA kuralına takılıp HTML dönmesin —
+# gerçek 404 dönsün ki tarayıcı yedek içeriğe hızlıca geçebilsin.
+[[redirects]]
+  from = "/ozge/*"
+  to = "/ozge/:splat"
+  status = 404
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
