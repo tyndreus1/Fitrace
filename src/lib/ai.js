@@ -9,9 +9,9 @@ import { estimateFromText } from './foodDb'
 
 const FN = '/.netlify/functions'
 
-// Netlify fonksiyonu 10 saniyede kesiliyor; biraz payla bekleyip vazgeçiyoruz
-// ki arayüz sonsuza kadar "hesaplanıyor" demesin.
-const TIMEOUT_MS = 13000
+// Sunucu tarafındaki bütçe 22 saniye; tarayıcı ondan önce vazgeçerse yanıt
+// gelse bile boşa gider. Biraz payla bekliyoruz.
+const TIMEOUT_MS = 26000
 
 async function callFunction(name, payload) {
   const controller = new AbortController()

@@ -4,10 +4,10 @@ import Anthropic from '@anthropic-ai/sdk'
 // geçiyoruz — sohbet yoğunluk yüzünden tamamen kesilmesin.
 const MODELS = ['claude-opus-5', 'claude-sonnet-5']
 
-// Netlify hesabına göre eşzamanlı fonksiyon sınırı değişiyor; ölçmek için
-// geniş tutuluyor. Netlify daha erken keserse kendi hatasını döner.
-const TOTAL_BUDGET_MS = Number(process.env.AI_BUDGET_MS || 20000)
-const MIN_ATTEMPT_MS = 2500
+// Bu Netlify projesinde 16 saniyelik yanıtlar sorunsuz döndü (sınır 26 sn).
+// Koç yanıtı tipik olarak 10-16 saniye sürüyor, bütçeyi ona göre ayarlıyoruz.
+const TOTAL_BUDGET_MS = Number(process.env.AI_BUDGET_MS || 22000)
+const MIN_ATTEMPT_MS = 4000
 
 // Yanıtı şemayla kısıtlıyoruz: düşünme kapalıyken modelin iç muhakemesini
 // görünür metne sızdırma ihtimali kalmıyor, arayüz de her zaman tek bir
