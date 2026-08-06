@@ -72,7 +72,22 @@ hiç gönderilmez.
 
 1. Yeni bir Supabase projesi aç.
 2. SQL Editor'a `supabase/schema.sql` dosyasını yapıştırıp çalıştır.
+   **Eski "Fit Race" şemasından geliyorsan** bunun yerine
+   `supabase/migration.sql` çalıştır: eksik tabloları ekler, omuz ölçüsü
+   sütununu açar ve kayıtları reddeden eski `profiles` bağını kaldırır.
 3. Proje URL'i ve `anon` anahtarını Netlify ortam değişkenlerine ekle.
+
+### Kayıt asla sessizce kaybolmaz
+
+Bulut yazılamazsa (şema uyumsuz, ağ kopuk) uygulama kaydı **cihaza yazar** ve
+üstte "Kayıtlar şu an bu cihazda tutuluyor" şeridini gösterir; sebebi de yazar.
+Şemayı düzelttikten sonra o şeritteki **"Bulutu tekrar dene"** düğmesi bulut
+kaydını yeniden açar.
+
+Ayrıntı: veritabanının kesin reddettiği durumlar (eksik tablo/sütun, yetki)
+kalıcı olarak yerel kayda geçirir; geçici ağ kopukluğu ise yalnızca o oturumu
+etkiler. Açılışta cihazdaki kayıtlar anında gösterilir, bulut yoklaması arkada
+yapılır — kullanıcı hiçbir zaman boş ekranla karşılaşmaz.
 
 Şema, tek kişilik gizli bir kullanım için açık RLS politikalarıyla gelir; anon
 anahtarını bilen okuyup yazabilir. Daha sıkı bir kurulum gerekiyorsa Supabase

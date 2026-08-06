@@ -41,12 +41,17 @@ export default function Coach() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [pending, setPending] = useState(null)
+  // Kaydedilemese bile ekranda kalsın diye bu oturumda yazılanların kopyası
+  const [unsaved, setUnsaved] = useState([])
   const endRef = useRef(null)
 
   const messages = useMemo(() => {
     const stored = (chat || []).map((c) => ({ role: c.role, content: c.content, at: c.created_at }))
-    return stored.length ? stored : [WELCOME]
-  }, [chat])
+    const base = stored.length ? stored : [WELCOME]
+    // Depoya ulaşmış olanları kopyadan ele; kalanlar sohbetin sonuna eklenir
+    const missing = unsaved.filter((u) => !stored.some((s) => s.role === u.role && s.content === u.content))
+    return [...base, ...missing]
+  }, [chat, unsaved])
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -89,6 +94,13 @@ export default function Coach() {
     await addChatMessage('user', content)
     const reply = await askCoach(history, context)
     await addChatMessage('assistant', reply.message)
+
+    // Kayıt bir şekilde başarısız olsa bile yanıt ekranda kalsın
+    setUnsaved((u) => [
+      ...u,
+      { role: 'user', content },
+      { role: 'assistant', content: reply.message },
+    ])
 
     setPending(null)
     setBusy(false)

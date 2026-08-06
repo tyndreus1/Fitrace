@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { useAuth } from '../context/contexts'
+import { useAuth, useData } from '../context/contexts'
 import { PROFILE } from '../lib/config'
+import { retryRemote } from '../lib/store'
 
 const NAV = [
   { to: '/', label: 'Bugün', icon: '🏠' },
@@ -10,6 +11,50 @@ const NAV = [
   { to: '/koc', label: 'Koç', icon: '💬' },
   { to: '/gunce', label: 'Günce', icon: '✨' },
 ]
+
+/** Kayıt sorunlarını sessizce yutmak yerine kullanıcıya gösteren şerit. */
+function StorageNotice() {
+  const { storageDegraded, storage, saveError, dismissSaveError } = useData()
+
+  if (saveError) {
+    return (
+      <div className="px-4 pt-3">
+        <div className="rounded-xl border border-[var(--pink)] bg-[rgba(236,72,153,0.12)] px-3 py-2 flex items-start gap-2">
+          <span>⚠️</span>
+          <p className="text-xs flex-1 leading-relaxed">{saveError}</p>
+          <button onClick={dismissSaveError} className="text-xs text-[var(--text-dim)]" aria-label="Kapat">
+            ✕
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!storageDegraded) return null
+
+  return (
+    <div className="px-4 pt-3">
+      <details className="rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] px-3 py-2">
+        <summary className="text-xs text-[var(--text-dim)] cursor-pointer">
+          📴 Kayıtlar şu an bu cihazda tutuluyor
+        </summary>
+        <p className="text-[11px] text-[var(--text-dim)] leading-relaxed mt-2">
+          Her şey normal çalışıyor ve hiçbir veri kaybolmuyor; sadece cihazlar arası eşitleme kapalı.
+          Sebep: {storage.reason}
+        </p>
+        <button
+          onClick={() => {
+            retryRemote()
+            window.location.reload()
+          }}
+          className="btn btn-ghost text-[11px] px-3 py-1.5 mt-2"
+        >
+          Bulutu tekrar dene
+        </button>
+      </details>
+    </div>
+  )
+}
 
 export default function Layout() {
   const { logout } = useAuth()
@@ -34,6 +79,10 @@ export default function Layout() {
           Çıkış
         </button>
       </header>
+
+      <div className="max-w-3xl mx-auto w-full">
+        <StorageNotice />
+      </div>
 
       <main className="flex-1 px-4 py-5 max-w-3xl mx-auto w-full pb-4">
         <Outlet />

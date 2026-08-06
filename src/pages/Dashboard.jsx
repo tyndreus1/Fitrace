@@ -33,8 +33,9 @@ export default function Dashboard() {
     meals,
     saveWeight,
     addWater,
-    loading,
   } = useData()
+
+  const hasWeightLog = (weights?.length || 0) > 0
 
   const [weightInput, setWeightInput] = useState('')
   const [saved, setSaved] = useState('')
@@ -67,7 +68,9 @@ export default function Dashboard() {
           <p className="text-xs text-[var(--text-dim)]">{greeting()},</p>
           <h2 className="text-2xl font-semibold pearl-text">{PROFILE.name}</h2>
           <p className="text-xs text-[var(--text-dim)] mt-1">
-            {loading ? 'Yükleniyor…' : `Hedefe ${Math.max(0, +(PROFILE.goalWeightKg - currentWeight).toFixed(1))} kg kaldı`}
+            {hasWeightLog
+              ? `Hedefe ${Math.max(0, +(PROFILE.goalWeightKg - currentWeight).toFixed(1))} kg kaldı`
+              : 'Başlamak için bugünkü kilonu gir'}
           </p>
         </div>
         <Photo name="yuruyus" fit="contain" className="h-28 w-auto shrink-0" rounded="" />
@@ -138,7 +141,11 @@ export default function Dashboard() {
 
       {/* İstatistikler */}
       <div className="grid grid-cols-2 gap-3">
-        <Stat label="Şu anki kilo" value={loading ? '—' : `${currentWeight} kg`} sub={`Hedef ${PROFILE.goalWeightKg} kg`} />
+        <Stat
+          label="Şu anki kilo"
+          value={hasWeightLog ? `${currentWeight} kg` : '—'}
+          sub={`Hedef ${PROFILE.goalWeightKg} kg`}
+        />
         <Stat
           label="Toplam değişim"
           value={`${gained >= 0 ? '+' : ''}${gained} kg`}
