@@ -1,65 +1,31 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { useState } from 'react'
+import { SESSION_KEY, SITE_PASSWORD } from '../lib/config'
+import { AuthCtx } from './contexts'
 
-const AuthContext = createContext(null)
-const STORAGE_KEY = 'fitrace_session'
+function readSession() {
+  try {
+    return localStorage.getItem(SESSION_KEY) === 'ok'
+  } catch {
+    return false
+  }
+}
 
 export function AuthProvider({ children }) {
-  const [profile, setProfile] = useState(null)
-  const [allProfiles, setAllProfiles] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [unlocked, setUnlocked] = useState(readSession)
 
-  useEffect(() => {
-    loadProfiles()
-  }, [])
-
-  async function loadProfiles() {
-    const { data, error } = await supabase.from('profiles').select('*').order('id')
-    if (!error && data) {
-      setAllProfiles(data)
-      const savedId = localStorage.getItem(STORAGE_KEY)
-      if (savedId) {
-        const found = data.find((p) => p.id === savedId)
-        if (found) setProfile(found)
-      }
+  function login(password) {
+    if (password.trim() !== SITE_PASSWORD) {
+      return { error: 'Şifre yanlış. Tekrar dene 💗' }
     }
-    setLoading(false)
-  }
-
-  async function login(profileId, pin) {
-    const target = allProfiles.find((p) => p.id === profileId)
-    if (!target) return { error: 'Profile not found' }
-    if (String(target.pin) !== String(pin)) return { error: 'Incorrect PIN' }
-    setProfile(target)
-    localStorage.setItem(STORAGE_KEY, target.id)
+    localStorage.setItem(SESSION_KEY, 'ok')
+    setUnlocked(true)
     return { error: null }
   }
 
   function logout() {
-    setProfile(null)
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(SESSION_KEY)
+    setUnlocked(false)
   }
 
-  async function updateHeight(heightCm) {
-    const { error } = await supabase.from('profiles').update({ height_cm: heightCm }).eq('id', profile.id)
-    if (!error) {
-      setProfile((p) => ({ ...p, height_cm: heightCm }))
-      setAllProfiles((all) => all.map((p) => (p.id === profile.id ? { ...p, height_cm: heightCm } : p)))
-    }
-    return { error }
-  }
-
-  const opponent = profile ? allProfiles.find((p) => p.id !== profile.id) : null
-
-  return (
-    <AuthContext.Provider
-      value={{ profile, opponent, allProfiles, loading, login, logout, updateHeight, reload: loadProfiles }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
-}
-
-export function useAuth() {
-  return useContext(AuthContext)
+  return <AuthCtx.Provider value={{ unlocked, login, logout }}>{children}</AuthCtx.Provider>
 }
