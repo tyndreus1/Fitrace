@@ -10,6 +10,7 @@ import Measure from './pages/Measure'
 import Program from './pages/Program'
 import Coach from './pages/Coach'
 import Journal from './pages/Journal'
+import Messages from './pages/Messages'
 
 function Gate() {
   const { unlocked } = useAuth()
@@ -36,9 +37,18 @@ function Gate() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Gate />
-      </AuthProvider>
+      <Routes>
+        {/* Yaratıcının okuduğu gizli sayfa — Özge'nin girişinden bağımsız. */}
+        <Route path="/mesajlar" element={<Messages />} />
+        <Route
+          path="*"
+          element={
+            <AuthProvider>
+              <Gate />
+            </AuthProvider>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   )
 }

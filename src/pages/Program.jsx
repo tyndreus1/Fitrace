@@ -4,6 +4,7 @@ import { MEAL_PLAN, NUTRITION_RULES, SHOPPING_LIST, planDayTotals, todaysPlan } 
 import { TRAINING_RULES, WORKOUT_WEEK, todaysWorkout } from '../lib/workout'
 import { useData } from '../context/contexts'
 import Photo from '../components/Photo'
+import ThanksBox from '../components/ThanksBox'
 
 function Tabs({ value, onChange }) {
   const tabs = [
@@ -234,6 +235,8 @@ export default function Program() {
       {tab === 'beslenme' && <NutritionTab />}
       {tab === 'antrenman' && <WorkoutTab />}
       {tab === 'market' && <ShoppingTab />}
+
+      <ThanksBox />
     </div>
   )
 }

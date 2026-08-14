@@ -3,8 +3,8 @@ import { useData } from '../context/contexts'
 import { askCoach } from '../lib/ai'
 import { PROFILE } from '../lib/config'
 import { calcBmi } from '../lib/nutrition'
-import { focusCmGained, loggingStreak, weeklyTrendKg, weightGainedKg } from '../lib/stats'
-import { formatTime } from '../lib/dates'
+import { dailySummaries, focusCmGained, loggingStreak, mealsOn, weeklyTrendKg, weightGainedKg } from '../lib/stats'
+import { daysAgoStr, formatTime, todayStr } from '../lib/dates'
 
 const STARTERS = [
   'Bugün ne yesem? Elimde yumurta, yoğurt ve tavuk var.',
@@ -73,6 +73,22 @@ export default function Coach() {
       haftalikEgilimKg: weeklyTrendKg(weights),
       kayitSerisiGun: loggingStreak(meals),
       kalcaBacakKazancCm: focusCmGained(measurements),
+      // Koç "dün ne yedim" gibi soruları yanıtlayabilsin diye son 3 günün öğünleri
+      sonGunlerinOgunleri: [todayStr(), daysAgoStr(1), daysAgoStr(2)].map((gun) => ({
+        gun,
+        ogunler: mealsOn(meals, gun).map((m) => ({
+          ogun: m.meal_slot,
+          yazdigi: m.note,
+          kcal: m.kcal,
+          protein: Math.round(m.protein_g),
+        })),
+      })),
+      gunlukKaloriOzeti: dailySummaries(meals, weights, 7).map((d) => ({
+        gun: d.date,
+        kcal: d.kcal,
+        protein: d.protein,
+        kilo: d.weight,
+      })),
       bugunRuhHali: todaysJournal?.mood ?? null,
       bugunCilt: todaysJournal?.skin ?? null,
     }),

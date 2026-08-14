@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { hasRemote, store } from '../lib/store'
+import { hasRemote, setOnRemoteReady, store } from '../lib/store'
 import { dailyTargets } from '../lib/nutrition'
 import { latestWeight, mealsOn, totalsFor, waterOn, journalOn } from '../lib/stats'
 import { PROFILE } from '../lib/config'
@@ -30,17 +30,23 @@ export function DataProvider({ children }) {
     return next
   }, [])
 
-  // İlk yükleme
+  // İlk yükleme + bulut yoklaması bitince tek sefer tazeleme
   useEffect(() => {
     let cancelled = false
-    store.loadAll().then((next) => {
+    const apply = (next) => {
       if (cancelled) return
       setData(next)
       setStorage(store.status())
       setLoading(false)
+    }
+    store.loadAll().then(apply)
+    // Yoklama arka planda; bittiğinde (bulut verisi/uyarı için) bir kez tazele.
+    setOnRemoteReady(() => {
+      store.loadAll().then(apply)
     })
     return () => {
       cancelled = true
+      setOnRemoteReady(null)
     }
   }, [])
 
@@ -86,6 +92,9 @@ export function DataProvider({ children }) {
       saveJournal: wrap(store.saveJournal),
       addChatMessage: wrap(store.addChatMessage),
       clearChat: wrap(store.clearChat),
+      exportAll: store.exportAll,
+      importAll: wrap(store.importAll),
+      addThanks: wrap(store.addThanks),
     }
   }, [data, loading, reload, wrap, storage, saveError])
 

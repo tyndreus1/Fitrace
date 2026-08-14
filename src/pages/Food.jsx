@@ -2,9 +2,121 @@ import { useMemo, useState } from 'react'
 import { useData } from '../context/contexts'
 import { analyzeMeal } from '../lib/ai'
 import { sumItems } from '../lib/foodDb'
-import { formatTime } from '../lib/dates'
+import { formatDay, formatTime, todayStr } from '../lib/dates'
+import { dailySummaries, weeklyReview } from '../lib/stats'
 import Ring from '../components/Ring'
 import Photo from '../components/Photo'
+
+/** Son 7 günün özeti — hafta sonu değerlendirmesi için. */
+function WeeklyReview() {
+  const { meals, weights, targets } = useData()
+  const r = useMemo(
+    () => weeklyReview(meals, weights, targets.kcal, targets.protein),
+    [meals, weights, targets],
+  )
+  if (!r) return null
+
+  return (
+    <div className="card p-4">
+      <h3 className="font-medium text-sm mb-3">Bu haftanın değerlendirmesi</h3>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-xl font-semibold text-[var(--pink-soft)]">{r.avgKcal}</p>
+          <p className="text-[11px] text-[var(--text-dim)]">günlük ortalama kalori</p>
+        </div>
+        <div>
+          <p className="text-xl font-semibold text-[var(--mint)]">{r.avgProtein} g</p>
+          <p className="text-[11px] text-[var(--text-dim)]">günlük ortalama protein</p>
+        </div>
+        <div>
+          <p className="text-xl font-semibold">
+            {r.daysHitKcal}
+            <span className="text-sm text-[var(--text-dim)]">/{r.loggedDays}</span>
+          </p>
+          <p className="text-[11px] text-[var(--text-dim)]">gün kalori hedefini tuttu</p>
+        </div>
+        <div>
+          <p
+            className="text-xl font-semibold"
+            style={{ color: r.weightChange == null ? 'var(--text-dim)' : r.weightChange >= 0 ? 'var(--mint)' : 'var(--gold)' }}
+          >
+            {r.weightChange == null ? '—' : `${r.weightChange > 0 ? '+' : ''}${r.weightChange} kg`}
+          </p>
+          <p className="text-[11px] text-[var(--text-dim)]">bu haftaki kilo değişimi</p>
+        </div>
+      </div>
+      {r.weightChange != null && r.daysHitKcal >= Math.ceil(r.loggedDays * 0.7) && r.weightChange <= 0 && (
+        <p className="text-xs text-[var(--gold)] bg-[rgba(245,185,66,0.10)] rounded-xl p-3 mt-3 leading-relaxed">
+          💡 Hedefini çoğu gün tutturmuşsun ama kilo artmamış. Birkaç hafta böyle sürerse günlük kalori
+          hedefini biraz yükseltmeyi düşünebilirsin — vücudun tahmininden fazla yakıyor olabilir.
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** Gün gün kalori çubukları; hedefi geçen gün yeşile döner. */
+function DailyBars() {
+  const { meals, weights, targets } = useData()
+  const [days, setDays] = useState(7)
+  const rows = useMemo(() => dailySummaries(meals, weights, days), [meals, weights, days])
+  const today = todayStr()
+  const hasAny = rows.some((d) => d.mealCount > 0)
+
+  if (!hasAny) return null
+
+  return (
+    <div className="card p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-medium text-sm">Günlük kalori</h3>
+        <div className="flex gap-1.5">
+          {[7, 14].map((n) => (
+            <button
+              key={n}
+              onClick={() => setDays(n)}
+              className={`chip ${days === n ? 'chip-on' : ''}`}
+            >
+              {n} gün
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        {rows.map((d) => {
+          const pct = Math.min(100, Math.round((d.kcal / targets.kcal) * 100))
+          const hit = d.kcal >= targets.kcal
+          const empty = d.mealCount === 0
+          return (
+            <div key={d.date} className="flex items-center gap-2.5 text-xs">
+              <span className={`w-14 shrink-0 ${d.date === today ? 'text-[var(--pink-soft)]' : 'text-[var(--text-dim)]'}`}>
+                {d.date === today ? 'Bugün' : formatDay(d.date)}
+              </span>
+              <div className="flex-1 h-4 rounded-full bg-[var(--bg-soft)] overflow-hidden relative">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${empty ? 0 : Math.max(4, pct)}%`,
+                    background: hit ? 'var(--mint)' : 'linear-gradient(90deg, var(--pink), var(--pink-deep))',
+                    transition: 'width 0.4s ease',
+                  }}
+                />
+              </div>
+              <span className={`w-24 text-right shrink-0 ${hit ? 'text-[var(--mint)]' : 'text-[var(--text-dim)]'}`}>
+                {empty ? '—' : `${d.kcal} kcal`}
+                {d.weight != null && <span className="text-[var(--text-dim)]"> · {d.weight}kg</span>}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      <p className="text-[11px] text-[var(--text-dim)] mt-3">
+        Çubuk {targets.kcal} kaloriye ulaşınca yeşile döner. Yanında o günkü kilon da varsa görünür.
+      </p>
+    </div>
+  )
+}
 
 const SLOTS = ['Kahvaltı', 'Ara öğün', 'Öğle', 'Atıştırmalık', 'Akşam', 'Gece']
 
@@ -261,6 +373,9 @@ export default function Food() {
           </div>
         )}
       </div>
+
+      <WeeklyReview />
+      <DailyBars />
     </div>
   )
 }

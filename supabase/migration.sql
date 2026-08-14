@@ -46,6 +46,13 @@ create table if not exists chat_messages (
   created_at timestamptz default now()
 );
 
+create table if not exists tesekkur (
+  id uuid primary key default gen_random_uuid(),
+  profile_id text not null default 'ozge',
+  content text not null,
+  created_at timestamptz default now()
+);
+
 -- 2) Eksik sütun ---------------------------------------------------------
 
 alter table measurements add column if not exists shoulders_cm numeric;
@@ -75,12 +82,13 @@ end $$;
 alter table meals enable row level security;
 alter table journal enable row level security;
 alter table chat_messages enable row level security;
+alter table tesekkur enable row level security;
 
 do $$
 declare
   t text;
 begin
-  foreach t in array array['weight_logs','measurements','water_logs','meals','journal','chat_messages']
+  foreach t in array array['weight_logs','measurements','water_logs','meals','journal','chat_messages','tesekkur']
   loop
     execute format('drop policy if exists "acik %s" on %I', t, t);
     execute format('create policy "acik %s" on %I for all using (true) with check (true)', t, t);

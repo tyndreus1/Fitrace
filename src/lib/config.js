@@ -20,3 +20,7 @@ export const PROFILE = {
 export const SITE_PASSWORD = 'pembeinci'
 
 export const SESSION_KEY = 'ozge_session'
+
+// Yaratıcıya bırakılan teşekkür mesajlarını okumak için gizli sayfa.
+// Link: <site>/mesajlar  ·  Şifre aşağıda. Özge bunu bilmez; sürpriz için.
+export const ADMIN_PASSWORD = 'tesekkurler'

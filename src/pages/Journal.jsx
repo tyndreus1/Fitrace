@@ -6,6 +6,7 @@ import { focusCmGained, loggingStreak, proteinHitDays, waterStreak, weightGained
 import { formatDay } from '../lib/dates'
 import { PROFILE } from '../lib/config'
 import Photo from '../components/Photo'
+import Backup from '../components/Backup'
 import { GALLERY } from '../lib/media'
 
 export default function Journal() {
@@ -189,6 +190,8 @@ export default function Journal() {
           })}
         </div>
       </div>
+
+      <Backup />
 
       {/* Uyku hatırlatması */}
       <div className="card p-4 flex items-center gap-3">

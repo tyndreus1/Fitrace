@@ -124,3 +124,48 @@ export function latestMeasurement(measurements) {
 export function journalOn(journal, date = todayStr()) {
   return (journal || []).find((j) => j.log_date === date) || null
 }
+
+/**
+ * Son N günün gün gün kalori/protein toplamı + o günkü kilo.
+ * En yeni gün başta. Haftalık değerlendirme ve günlük çubuklar için.
+ */
+export function dailySummaries(meals, weightLogs, days = 14) {
+  const weightByDay = {}
+  for (const w of weightLogs || []) weightByDay[w.log_date] = w.weight_kg
+
+  const rows = []
+  for (let i = 0; i < days; i++) {
+    const day = daysAgoStr(i)
+    const dayMeals = mealsOn(meals, day)
+    const t = totalsFor(dayMeals)
+    rows.push({
+      date: day,
+      kcal: t.kcal,
+      protein: t.protein,
+      mealCount: dayMeals.length,
+      weight: weightByDay[day] ?? null,
+    })
+  }
+  return rows
+}
+
+/** Son 7 gün: ortalama kalori/protein, kilo değişimi, hedefi tutturulan gün. */
+export function weeklyReview(meals, weightLogs, kcalTarget, proteinTarget) {
+  const week = dailySummaries(meals, weightLogs, 7).filter((d) => d.mealCount > 0)
+  if (!week.length) return null
+
+  const avgKcal = Math.round(week.reduce((s, d) => s + d.kcal, 0) / week.length)
+  const avgProtein = Math.round(week.reduce((s, d) => s + d.protein, 0) / week.length)
+  const daysHitKcal = week.filter((d) => d.kcal >= kcalTarget).length
+  const daysHitProtein = week.filter((d) => d.protein >= proteinTarget).length
+
+  const withWeight = dailySummaries(meals, weightLogs, 8)
+    .filter((d) => d.weight != null)
+    .sort((a, b) => a.date.localeCompare(b.date))
+  const weightChange =
+    withWeight.length >= 2
+      ? +(withWeight[withWeight.length - 1].weight - withWeight[0].weight).toFixed(1)
+      : null
+
+  return { loggedDays: week.length, avgKcal, avgProtein, daysHitKcal, daysHitProtein, weightChange }
+}
