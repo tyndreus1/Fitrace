@@ -13,6 +13,13 @@ export function daysAgoStr(n) {
   return toLocalStr(d)
 }
 
+export function formatDMY(dateStr) {
+  if (!dateStr) return ''
+  const [y, m, d] = dateStr.split('-')
+  if (!y || !m || !d) return dateStr
+  return `${d}/${m}/${y}`
+}
+
 export function formatDay(dateStr) {
   const d = new Date(dateStr + 'T00:00:00')
   return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })

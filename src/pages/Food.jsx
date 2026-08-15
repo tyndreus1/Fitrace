@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react'
 import { useData } from '../context/contexts'
 import { analyzeMeal } from '../lib/ai'
 import { sumItems } from '../lib/foodDb'
-import { formatDay, formatTime, todayStr } from '../lib/dates'
+import { formatDay, formatTime, todayStr, daysAgoStr } from '../lib/dates'
 import { dailySummaries, weeklyReview } from '../lib/stats'
 import Ring from '../components/Ring'
 import Photo from '../components/Photo'
+import DateField from '../components/DateField'
 
 /** Son 7 günün özeti — hafta sonu değerlendirmesi için. */
 function WeeklyReview() {
@@ -143,6 +144,7 @@ export default function Food() {
   const { todaysMeals, todaysTotals, targets, currentWeight, addMeal, deleteMeal } = useData()
   const [text, setText] = useState('')
   const [slot, setSlot] = useState(guessSlot())
+  const [date, setDate] = useState(todayStr())
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState(null)
   const [msg, setMsg] = useState('')
@@ -174,6 +176,7 @@ export default function Food() {
     if (!result?.items?.length) return
     const total = sumItems(result.items)
     await addMeal({
+      log_date: date,
       meal_slot: slot,
       note: text.trim(),
       kcal: total.kcal,
@@ -185,8 +188,9 @@ export default function Food() {
     })
     setText('')
     setResult(null)
-    setMsg('Öğün eklendi 💗')
-    setTimeout(() => setMsg(''), 2000)
+    setMsg(date === todayStr() ? 'Öğün eklendi 💗' : `${formatDay(date)} gününe eklendi 💗`)
+    setDate(todayStr())
+    setTimeout(() => setMsg(''), 2500)
   }
 
   function updateItem(idx, field, value) {
@@ -241,6 +245,21 @@ export default function Food() {
               {s}
             </button>
           ))}
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <label className="text-[11px] text-[var(--text-dim)]">Tarih</label>
+          <DateField value={date} max={todayStr()} min={daysAgoStr(60)} onChange={setDate} />
+          {date !== todayStr() && (
+            <>
+              <span className="text-[11px] text-[var(--gold)]">
+                {formatDay(date)} gününe kaydedilecek
+              </span>
+              <button type="button" onClick={() => setDate(todayStr())} className="chip">
+                Bugüne dön
+              </button>
+            </>
+          )}
         </div>
 
         <textarea

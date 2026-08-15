@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../context/contexts'
 import { PROFILE } from '../lib/config'
-import { greeting } from '../lib/dates'
+import { greeting, todayStr, daysAgoStr, formatDay } from '../lib/dates'
 import { affirmationOfTheDay, challengeOfTheWeek } from '../lib/motivation'
 import { calcBmi, bmiLabel, goalProgressPct, weeksToGoal } from '../lib/nutrition'
 import { weeklyTrendKg, weightGainedKg, loggingStreak } from '../lib/stats'
@@ -10,6 +10,7 @@ import { todaysPlan } from '../lib/mealPlan'
 import { todaysWorkout } from '../lib/workout'
 import Ring from '../components/Ring'
 import Photo from '../components/Photo'
+import DateField from '../components/DateField'
 
 function Stat({ label, value, sub, tone = 'var(--pink-soft)' }) {
   return (
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const hasWeightLog = (weights?.length || 0) > 0
 
   const [weightInput, setWeightInput] = useState('')
+  const [weightDate, setWeightDate] = useState(todayStr())
   const [saved, setSaved] = useState('')
 
   const bmi = calcBmi(currentWeight)
@@ -54,10 +56,11 @@ export default function Dashboard() {
     e.preventDefault()
     const n = parseFloat(weightInput.replace(',', '.'))
     if (!n || n < 30 || n > 200) return
-    await saveWeight(n)
+    await saveWeight(n, weightDate)
     setWeightInput('')
-    setSaved('Kaydedildi 💗')
-    setTimeout(() => setSaved(''), 2000)
+    setSaved(weightDate === todayStr() ? 'Kaydedildi 💗' : `${formatDay(weightDate)} için kaydedildi 💗`)
+    setWeightDate(todayStr())
+    setTimeout(() => setSaved(''), 2500)
   }
 
   return (
@@ -117,7 +120,9 @@ export default function Dashboard() {
       {/* Kilo girişi */}
       <form onSubmit={submitWeight} className="card p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium text-sm">Bugünkü kilon</h3>
+          <h3 className="font-medium text-sm">
+            {weightDate === todayStr() ? 'Bugünkü kilon' : `${formatDay(weightDate)} kilon`}
+          </h3>
           {saved && <span className="text-xs text-[var(--mint)]">{saved}</span>}
         </div>
         <div className="flex gap-2">
@@ -134,8 +139,27 @@ export default function Dashboard() {
             Kaydet
           </button>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <label className="text-[11px] text-[var(--text-dim)]">Tarih</label>
+          <DateField
+            value={weightDate}
+            max={todayStr()}
+            min={daysAgoStr(60)}
+            onChange={setWeightDate}
+          />
+          {weightDate !== todayStr() && (
+            <button
+              type="button"
+              onClick={() => setWeightDate(todayStr())}
+              className="chip"
+            >
+              Bugüne dön
+            </button>
+          )}
+        </div>
         <p className="text-[11px] text-[var(--text-dim)]">
-          En doğru sonuç için sabah, aç karnına ve tuvaletten sonra tart. Günlük oynamalar normaldir.
+          En doğru sonuç için sabah, aç karnına ve tuvaletten sonra tart. Geçmiş bir günü unuttuysan
+          tarihi değiştirip yaklaşık değeri girebilirsin.
         </p>
       </form>
 
