@@ -6,6 +6,7 @@ import { formatDay, formatTime, todayStr, daysAgoStr } from '../lib/dates'
 import { dailySummaries, weeklyReview } from '../lib/stats'
 import Ring from '../components/Ring'
 import Photo from '../components/Photo'
+import DateField from '../components/DateField'
 
 /** Son 7 günün özeti — hafta sonu değerlendirmesi için. */
 function WeeklyReview() {
@@ -248,14 +249,7 @@ export default function Food() {
 
         <div className="flex items-center gap-2 flex-wrap">
           <label className="text-[11px] text-[var(--text-dim)]">Tarih</label>
-          <input
-            type="date"
-            value={date}
-            max={todayStr()}
-            min={daysAgoStr(60)}
-            onChange={(e) => setDate(e.target.value || todayStr())}
-            className="input py-1.5 text-xs w-auto"
-          />
+          <DateField value={date} max={todayStr()} min={daysAgoStr(60)} onChange={setDate} />
           {date !== todayStr() && (
             <>
               <span className="text-[11px] text-[var(--gold)]">

@@ -10,6 +10,7 @@ import { todaysPlan } from '../lib/mealPlan'
 import { todaysWorkout } from '../lib/workout'
 import Ring from '../components/Ring'
 import Photo from '../components/Photo'
+import DateField from '../components/DateField'
 
 function Stat({ label, value, sub, tone = 'var(--pink-soft)' }) {
   return (
@@ -140,13 +141,11 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <label className="text-[11px] text-[var(--text-dim)]">Tarih</label>
-          <input
-            type="date"
+          <DateField
             value={weightDate}
             max={todayStr()}
             min={daysAgoStr(60)}
-            onChange={(e) => setWeightDate(e.target.value || todayStr())}
-            className="input py-1.5 text-xs w-auto"
+            onChange={setWeightDate}
           />
           {weightDate !== todayStr() && (
             <button
