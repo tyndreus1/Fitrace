@@ -36,10 +36,10 @@ function StorageNotice() {
     <div className="px-4 pt-3">
       <details className="rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] px-3 py-2">
         <summary className="text-xs text-[var(--text-dim)] cursor-pointer">
-          📴 Kayıtlar şu an bu cihazda tutuluyor
+          📴 {storage.mode === 'yerel' ? 'Kayıtlar şu an bu cihazda tutuluyor' : 'Bazı kayıtlar buluta eşitlenemedi'}
         </summary>
         <p className="text-[11px] text-[var(--text-dim)] leading-relaxed mt-2">
-          Her şey normal çalışıyor ve hiçbir veri kaybolmuyor; sadece cihazlar arası eşitleme kapalı.
+          Bu cihazda saklanan kayıtları görmeye devam edebilirsin. Eşitlenemeyen kayıtlar diğer cihazlarda görünmeyebilir.
           Sebep: {storage.reason}
         </p>
         <button

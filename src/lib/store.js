@@ -41,7 +41,7 @@ const TABLE_KEY = {
 
 const TABLES = Object.keys(TABLE_KEY)
 
-// Yerel kayda düşme kararı sayfa yenilenince UNUTULMAMALI.
+// Önceki sürümün kalıcı hata bayrağı; başarılı yoklamada temizlenir.
 const OFF_KEY = LS_PREFIX + 'bulut_kapali'
 
 function safeGet(k) {
@@ -58,33 +58,31 @@ const offReason = hasRemote ? safeGet(OFF_KEY) : ''
  * 'yerel' → yalnızca cihaz; 'bulut' → cihaz + bulut aynası
  */
 export const remoteState = {
-  mode: hasRemote && !offReason ? 'bulut' : 'yerel',
+  // Eski hata bayrağı kalıcı kilit değildir: her açılışta tekrar yokla.
+  mode: hasRemote ? 'bulut' : 'yerel',
   reason: hasRemote ? offReason : 'Supabase yapılandırılmamış; kayıtlar bu cihazda tutuluyor.',
-  checked: !hasRemote || Boolean(offReason),
+  checked: !hasRemote,
+  tableErrors: {},
 }
 
-/**
- * @param persist Kalıcı mı? Veritabanının kesin reddettiği durumlar (eksik
- *   tablo/sütun, yetki) kalıcıdır. Geçici ağ kopukluğu değildir — yoksa bir kez
- *   bağlantı kesilince bulut eşitlemesi temelli kapanırdı.
- */
-function fallbackToLocal(reason, { persist = true } = {}) {
+function notifyReady() {
+  if (onReady) onReady()
+}
+
+/** Bir tablonun hatası diğer tabloların eşitlemesini durdurmamalı. */
+function failTable(table, reason) {
+  remoteState.tableErrors[table] = reason
+  remoteState.reason = Object.values(remoteState.tableErrors).join(' ')
+  console.warn('Tablo eşitlemesi durduruldu:', reason)
+  notifyReady()
+}
+
+/** Bağlantı hatası yalnızca bu oturumu etkiler; sonraki açılış yeniden yoklar. */
+function fallbackToLocal(reason) {
   if (remoteState.mode === 'yerel') return
   remoteState.mode = 'yerel'
   remoteState.reason = reason
-  if (persist) {
-    try {
-      localStorage.setItem(OFF_KEY, reason)
-    } catch {
-      // bayrak yazılamazsa da oturum boyunca yerel kayıt sürer
-    }
-  }
   console.warn('Bulut eşitlemesi kapatıldı:', reason)
-}
-
-/** PostgREST hatalarının kodu olur; ağ hatalarının olmaz. */
-function isDefinite(error) {
-  return Boolean(error?.code)
 }
 
 /** Şema düzeltildikten sonra bulut eşitlemesini yeniden denemek için. */
@@ -101,19 +99,32 @@ function newId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
-function remoteActive() {
-  return hasRemote && remoteState.mode === 'bulut'
+function remoteActive(table) {
+  return hasRemote && remoteState.mode === 'bulut' && !remoteState.tableErrors[table]
 }
 
 // Bulut çağrıları hiçbir zaman kullanıcıyı bekletmemeli: ulaşılamayan ama
 // yapılandırılmış bir bulut, zaman aşımı olmadan sonsuza kadar askıda kalabilir.
 const CLOUD_OP_TIMEOUT_MS = 6000
 
-function withTimeout(promise, ms = CLOUD_OP_TIMEOUT_MS) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('zaman aşımı')), ms)),
-  ])
+async function withTimeout(promise, ms = CLOUD_OP_TIMEOUT_MS) {
+  let timer
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('zaman aşımı')), ms) }),
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/** Eski su tablosu created_at içermez; yeni kayıt ve bekleyen kayıt aynı yolu kullanır. */
+function cloudRecord(table, record) {
+  const payload = { ...record }
+  delete payload.saved_at
+  if (table === 'water_logs') delete payload.created_at
+  return payload
 }
 
 // ---- localStorage ----
@@ -215,26 +226,19 @@ function kickProbe() {
 
 async function runProbe() {
   const probe = Promise.all(TABLES.map((t) => supabase.from(t).select('id').limit(1)))
-  const timeout = new Promise((resolve) => setTimeout(() => resolve('zaman-asimi'), PROBE_TIMEOUT_MS))
 
   try {
-    const results = await Promise.race([probe, timeout])
-
-    if (results === 'zaman-asimi') {
-      fallbackToLocal('Buluta zamanında ulaşılamadı; kayıtlar şimdilik bu cihazda.', { persist: false })
-      return
-    }
-
-    const broken = results.map((r, i) => (r.error ? TABLES[i] : null)).filter(Boolean)
-    if (broken.length) {
-      fallbackToLocal(
-        `Buluttaki şu tablolara ulaşılamadı: ${broken.join(', ')}. ` +
-          'supabase/migration.sql çalıştırılınca bulut eşitlemesi kendiliğinden açılır.',
-        { persist: results.some((r) => isDefinite(r.error)) },
-      )
-    }
+    const results = await withTimeout(probe, PROBE_TIMEOUT_MS)
+    results.forEach((result, index) => {
+      if (result.error) {
+        const table = TABLES[index]
+        remoteState.tableErrors[table] = `"${table}" erişilemiyor: ${result.error.message}`
+      }
+    })
+    remoteState.reason = Object.values(remoteState.tableErrors).join(' ')
+    retryRemote()
   } catch (err) {
-    fallbackToLocal(`Buluta bağlanılamadı (${String(err?.message || err)}).`, { persist: false })
+    fallbackToLocal(`Buluta bağlanılamadı (${String(err?.message || err)}).`)
   } finally {
     remoteState.checked = true
     // Bulut durumu netleşti; arayüz bir kez tazelensin (varsa cloud verisi
@@ -257,37 +261,45 @@ async function runProbe() {
  * da yukarı çıksın diye. En iyi çaba: başarısız olursa kimseyi bekletmez.
  */
 function pushPending(table, rows) {
-  const payload = rows.map((r) => { const c = { ...r }; delete c.saved_at; return c })
+  const payload = rows.map((r) => cloudRecord(table, r))
   Promise.resolve()
-    .then(() => supabase.from(table).upsert(payload))
+    .then(() => withTimeout(supabase.from(table).upsert(payload, {
+      onConflict: TABLE_KEY[table] === 'log_date' ? 'profile_id,log_date' : 'id',
+      ignoreDuplicates: true,
+    })))
     .then(({ error }) => {
-      if (error) console.warn(`"${table}" buluta taşınamadı:`, error.message)
+      if (error) failTable(table, `"${table}" buluta taşınamadı: ${error.message}`)
       else console.info(`"${table}": ${payload.length} kayıt buluta taşındı`)
     })
-    .catch((err) => console.warn(`"${table}" buluta taşınamadı:`, err?.message || err))
+    .catch((err) => failTable(table, `"${table}" buluta taşınamadı: ${err?.message || err}`))
 }
 
 async function list(table, { orderBy = 'log_date', ascending = true } = {}) {
-  const local = lsRead(table)
+  const gone = deletedIds()
+  const local = lsRead(table).filter((r) => !gone.has(r.id))
   let remote = []
+  let readSucceeded = false
 
   // Yoklama bitmeden buluta gitme: cihaz verisini anında döndür. Yoklama
   // bitince onReady zaten bir tazeleme tetikleyecek.
-  if (remoteState.checked && remoteActive()) {
+  if (remoteState.checked && remoteActive(table)) {
     let query = supabase.from(table).select('*').eq('profile_id', PROFILE.id)
     if (orderBy === 'log_date') query = query.gte('log_date', daysAgoStr(HISTORY_DAYS))
     try {
       const { data, error } = await withTimeout(query.order(orderBy, { ascending }))
-      if (error) fallbackToLocal(`"${table}" okunamadı: ${error.message}`, { persist: isDefinite(error) })
-      else remote = data || []
+      if (error) failTable(table, `"${table}" okunamadı: ${error.message}`)
+      else {
+        remote = data || []
+        readSucceeded = true
+      }
     } catch (err) {
       // Zaman aşımı/askıda kalma: geçici say, cihaz verisiyle devam et.
-      fallbackToLocal(`"${table}" okunamadı: ${String(err?.message || err)}`, { persist: false })
+      failTable(table, `"${table}" okunamadı: ${String(err?.message || err)}`)
     }
   }
 
   // Yalnızca cihazda kalmış kayıtları buluta taşı (bulut sonradan açıldıysa).
-  if (remoteState.checked && remoteActive() && local.length) {
+  if (readSucceeded && remoteActive(table) && local.length) {
     const keyField = TABLE_KEY[table]
     const inCloud = new Set(remote.map((r) => String(r[keyField])))
     const pending = local.filter((r) => !inCloud.has(String(r[keyField])))
@@ -295,7 +307,10 @@ async function list(table, { orderBy = 'log_date', ascending = true } = {}) {
   }
 
   // Bulut boş dönse bile cihazdaki kayıtlar asla gizlenmez.
-  return mergeRows(remote, local, TABLE_KEY[table]).sort((a, b) => {
+  // Okuma sırasında eklenen kayıtları da koru; bulut kayıtlarını çevrimdışı kullanım için sakla.
+  const merged = mergeRows(remote, lsRead(table), TABLE_KEY[table])
+  if (readSucceeded) lsWrite(table, merged)
+  return merged.sort((a, b) => {
     const av = String(a[orderBy] ?? '')
     const bv = String(b[orderBy] ?? '')
     return ascending ? av.localeCompare(bv) : bv.localeCompare(av)
@@ -320,18 +335,17 @@ async function save(table, row) {
   const localResult = lsUpsert(table, record)
 
   // Bulut aynası arka planda, kullanıcıyı bekletmeden.
-  if (remoteActive()) {
-    const cloudRow = { ...record }
-    delete cloudRow.saved_at
+  if (remoteActive(table)) {
+    const cloudRow = cloudRecord(table, record)
     const op =
       keyField === 'log_date'
         ? supabase.from(table).upsert(cloudRow, { onConflict: 'profile_id,log_date' })
-        : supabase.from(table).insert(cloudRow)
+        : supabase.from(table).upsert(cloudRow, { onConflict: 'id' })
     withTimeout(op)
       .then(({ error } = {}) => {
-        if (error) fallbackToLocal(`"${table}" buluta yazılamadı: ${error.message}`, { persist: isDefinite(error) })
+        if (error) failTable(table, `"${table}" buluta yazılamadı: ${error.message}`)
       })
-      .catch((err) => fallbackToLocal(`"${table}" buluta yazılamadı: ${String(err?.message || err)}`, { persist: false }))
+      .catch((err) => failTable(table, `"${table}" buluta yazılamadı: ${String(err?.message || err)}`))
   }
 
   return localResult
@@ -344,12 +358,12 @@ async function remove(table, id) {
     lsRead(table).filter((r) => r.id !== id),
   )
 
-  if (remoteActive()) {
+  if (remoteActive(table)) {
     withTimeout(supabase.from(table).delete().eq('id', id))
       .then(({ error } = {}) => {
-        if (error) fallbackToLocal(`"${table}" silinemedi: ${error.message}`, { persist: isDefinite(error) })
+        if (error) failTable(table, `"${table}" silinemedi: ${error.message}`)
       })
-      .catch((err) => fallbackToLocal(`"${table}" silinemedi: ${String(err?.message || err)}`, { persist: false }))
+      .catch((err) => failTable(table, `"${table}" silinemedi: ${String(err?.message || err)}`))
   }
 
   return localResult
@@ -419,7 +433,7 @@ export const store = {
   /** Gizli sayfa için: yaratıcıya bırakılan tüm teşekkür mesajları. */
   loadThanks: async () => {
     let remote = []
-    if (remoteActive()) {
+    if (remoteActive('tesekkur')) {
       try {
         const { data } = await withTimeout(
           supabase.from('tesekkur').select('*').eq('profile_id', PROFILE.id).order('created_at', { ascending: false }),
@@ -437,12 +451,12 @@ export const store = {
   clearChat: async () => {
     for (const row of lsRead('chat_messages')) markDeleted(row.id)
     const localResult = lsWrite('chat_messages', [])
-    if (remoteActive()) {
+    if (remoteActive('chat_messages')) {
       withTimeout(supabase.from('chat_messages').delete().eq('profile_id', PROFILE.id))
         .then(({ error } = {}) => {
-          if (error) fallbackToLocal(`Sohbet silinemedi: ${error.message}`, { persist: isDefinite(error) })
+          if (error) failTable('chat_messages', `Sohbet silinemedi: ${error.message}`)
         })
-        .catch((err) => fallbackToLocal(`Sohbet silinemedi: ${String(err?.message || err)}`, { persist: false }))
+        .catch((err) => failTable('chat_messages', `Sohbet silinemedi: ${String(err?.message || err)}`))
     }
     return localResult
   },
@@ -471,5 +485,5 @@ export const store = {
     return { error: null, eklenen }
   },
 
-  status: () => ({ ...remoteState }),
+  status: () => ({ ...remoteState, tableErrors: { ...remoteState.tableErrors } }),
 }

@@ -17,7 +17,7 @@ kazanmak. Uygulamadaki tüm hesaplar ve metinler bu yöne göre yazıldı.
 | Sayfa | Ne yapar |
 |---|---|
 | **Bugün** | Günün kalori/protein/su halkaları, kilo girişi, VKİ, haftalık eğilim, hedefe ilerleme, günün menüsü ve antrenmanı |
-| **Yemek** | Ne yediğini normal cümleyle yaz → kalori ve makro tahmini, düzenleyip günlüğe ekleme |
+| **Yemek** | Gün seçerek geçmiş öğünleri ve toplamlarını gör; ne yediğini yaz → kalori ve makro tahmini, düzenleyip seçilen güne ekleme |
 | **Ölçüm** | Kilo grafiği (hedef çizgisiyle) + vücut şeması üzerinden mezura ölçüleri ve ilk ölçümden bu yana değişim |
 | **Program** | Haftalık beslenme menüsü, antrenman planı ve market listesi |
 | **Koç** | Kayıtlarını gören yapay zekâ koçuyla karşılıklı sohbet |
@@ -49,6 +49,7 @@ Bir dosya yoksa sayfa yine çalışır; o alan gizlenir ya da yerine emoji gelir
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # dist/ klasörüne üretim derlemesi
+npm test         # kayıt ve bulut eşitlemesi hata senaryoları
 npm run lint
 ```
 
@@ -77,17 +78,20 @@ hiç gönderilmez.
    sütununu açar ve kayıtları reddeden eski `profiles` bağını kaldırır.
 3. Proje URL'i ve `anon` anahtarını Netlify ortam değişkenlerine ekle.
 
-### Kayıt asla sessizce kaybolmaz
+### Cihaz kayıtları ve bulut eşitlemesi
 
-Bulut yazılamazsa (şema uyumsuz, ağ kopuk) uygulama kaydı **cihaza yazar** ve
-üstte "Kayıtlar şu an bu cihazda tutuluyor" şeridini gösterir; sebebi de yazar.
-Şemayı düzelttikten sonra o şeritteki **"Bulutu tekrar dene"** düğmesi bulut
-kaydını yeniden açar.
+Her kayıt önce **cihaza yazılır**, ardından buluta eşitlenir. Bir tablonun şema
+veya erişim hatası diğer tabloların eşitlemesini kapatmaz; eşitlenemeyen kayıtlar
+üstteki uyarıda belirtilir. Su kayıtları eski şemayla da uyumludur: buluta
+`logged_at` gönderilir, eski tabloda bulunmayan `created_at` gönderilmez.
 
-Ayrıntı: veritabanının kesin reddettiği durumlar (eksik tablo/sütun, yetki)
-kalıcı olarak yerel kayda geçirir; geçici ağ kopukluğu ise yalnızca o oturumu
-etkiler. Açılışta cihazdaki kayıtlar anında gösterilir, bulut yoklaması arkada
-yapılır — kullanıcı hiçbir zaman boş ekranla karşılaşmaz.
+Her açılışta bulut tekrar yoklanır; önceki sürümden kalan kalıcı hata bayrağı
+başarılı yoklamada temizlenir. Cihazda kalmış kayıtlar başarılı bulut okumasından
+sonra aynı kimlikle yeniden gönderilir; silinen kayıtlar gönderilmez. Buluttan
+okunan geçmiş de çevrimdışı kullanım ve yedekleme için cihazda saklanır.
+**"Bulutu tekrar dene"** düğmesi sayfayı yenileyerek yoklamayı yeniden başlatır.
+Tarayıcı verilerini temizlemek cihazdaki eşitlenmemiş kayıtları silebilir;
+önce yedek alınmalıdır.
 
 Şema, tek kişilik gizli bir kullanım için açık RLS politikalarıyla gelir; anon
 anahtarını bilen okuyup yazabilir. Daha sıkı bir kurulum gerekiyorsa Supabase

@@ -3,7 +3,7 @@ import { useData } from '../context/contexts'
 import { analyzeMeal } from '../lib/ai'
 import { sumItems } from '../lib/foodDb'
 import { formatDay, formatTime, todayStr, daysAgoStr } from '../lib/dates'
-import { dailySummaries, weeklyReview } from '../lib/stats'
+import { dailySummaries, weeklyReview, mealsOn, totalsFor } from '../lib/stats'
 import Ring from '../components/Ring'
 import Photo from '../components/Photo'
 import DateField from '../components/DateField'
@@ -141,20 +141,23 @@ function guessSlot(date = new Date()) {
 }
 
 export default function Food() {
-  const { todaysMeals, todaysTotals, targets, currentWeight, addMeal, deleteMeal } = useData()
+  const { meals, targets, currentWeight, addMeal, deleteMeal } = useData()
   const [text, setText] = useState('')
   const [slot, setSlot] = useState(guessSlot())
   const [date, setDate] = useState(todayStr())
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState(null)
   const [msg, setMsg] = useState('')
+  const [saving, setSaving] = useState(false)
+  const selectedMeals = useMemo(() => mealsOn(meals, date), [meals, date])
+  const selectedTotals = useMemo(() => totalsFor(selectedMeals), [selectedMeals])
 
   const remaining = useMemo(
     () => ({
-      kcal: Math.max(0, targets.kcal - todaysTotals.kcal),
-      protein: Math.max(0, Math.round(targets.protein - todaysTotals.protein)),
+      kcal: Math.max(0, targets.kcal - selectedTotals.kcal),
+      protein: Math.max(0, Math.round(targets.protein - selectedTotals.protein)),
     }),
-    [targets, todaysTotals],
+    [targets, selectedTotals],
   )
 
   async function handleAnalyze(e) {
@@ -165,7 +168,7 @@ export default function Food() {
     const analysis = await analyzeMeal(text.trim(), {
       weightKg: currentWeight,
       targets,
-      consumedToday: todaysTotals,
+      consumedToday: selectedTotals,
       slot,
     })
     setResult(analysis)
@@ -173,9 +176,10 @@ export default function Food() {
   }
 
   async function handleSave() {
-    if (!result?.items?.length) return
+    if (!result?.items?.length || saving) return
+    setSaving(true)
     const total = sumItems(result.items)
-    await addMeal({
+    const saved = await addMeal({
       log_date: date,
       meal_slot: slot,
       note: text.trim(),
@@ -186,10 +190,11 @@ export default function Food() {
       items: result.items,
       source: result.source,
     })
+    setSaving(false)
+    if (saved?.error) return
     setText('')
     setResult(null)
     setMsg(date === todayStr() ? 'Öğün eklendi 💗' : `${formatDay(date)} gününe eklendi 💗`)
-    setDate(todayStr())
     setTimeout(() => setMsg(''), 2500)
   }
 
@@ -220,10 +225,19 @@ export default function Food() {
       </div>
 
       <div className="card p-4">
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <label className="text-xs text-[var(--text-dim)]">Gün seç</label>
+          <DateField value={date} max={todayStr()} min={daysAgoStr(365)} onChange={setDate} />
+          <button type="button" onClick={() => setDate(daysAgoStr(1))} className="chip">Dün</button>
+          <button type="button" onClick={() => setDate(todayStr())} className="chip">Bugün</button>
+        </div>
+        <p className="text-xs text-[var(--text-dim)] mb-3">
+          {date === todayStr() ? 'Bugünün' : formatDay(date)} öğünleri ve toplamları. Yeni öğünler seçtiğin güne kaydedilir.
+        </p>
         <div className="grid grid-cols-3 gap-2">
-          <Ring value={todaysTotals.kcal} max={targets.kcal} label="Kalori" color="var(--pink)" />
-          <Ring value={todaysTotals.protein} max={targets.protein} label="Protein (g)" color="var(--mint)" />
-          <Ring value={todaysTotals.carb} max={targets.carb} label="Karb. (g)" color="var(--gold)" />
+          <Ring value={selectedTotals.kcal} max={targets.kcal} label="Kalori" color="var(--pink)" />
+          <Ring value={selectedTotals.protein} max={targets.protein} label="Protein (g)" color="var(--mint)" />
+          <Ring value={selectedTotals.carb} max={targets.carb} label="Karb. (g)" color="var(--gold)" />
         </div>
         <p className="text-xs text-[var(--text-dim)] text-center mt-3">
           {remaining.kcal > 0
@@ -245,21 +259,6 @@ export default function Food() {
               {s}
             </button>
           ))}
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <label className="text-[11px] text-[var(--text-dim)]">Tarih</label>
-          <DateField value={date} max={todayStr()} min={daysAgoStr(60)} onChange={setDate} />
-          {date !== todayStr() && (
-            <>
-              <span className="text-[11px] text-[var(--gold)]">
-                {formatDay(date)} gününe kaydedilecek
-              </span>
-              <button type="button" onClick={() => setDate(todayStr())} className="chip">
-                Bugüne dön
-              </button>
-            </>
-          )}
         </div>
 
         <textarea
@@ -350,22 +349,22 @@ export default function Food() {
                 </p>
               )}
 
-              <button onClick={handleSave} className="btn btn-primary">
-                Günlüğe ekle
+              <button onClick={handleSave} disabled={saving} className="btn btn-primary">
+                {saving ? 'Kaydediliyor…' : 'Günlüğe ekle'}
               </button>
             </>
           )}
         </div>
       )}
 
-      {/* Bugünün öğünleri */}
+      {/* Seçilen günün öğünleri */}
       <div className="card p-4">
-        <h3 className="font-medium text-sm mb-3">Bugün yedikleri</h3>
-        {todaysMeals.length === 0 ? (
-          <p className="text-sm text-[var(--text-dim)]">Henüz kayıt yok. İlk öğününü yukarıdan ekle.</p>
+        <h3 className="font-medium text-sm mb-3">{date === todayStr() ? 'Bugün yedikleri' : `${formatDay(date)} günü yedikleri`}</h3>
+        {selectedMeals.length === 0 ? (
+          <p className="text-sm text-[var(--text-dim)]">Bu gün için kayıt yok. Öğününü yukarıdan ekleyebilirsin.</p>
         ) : (
           <div className="flex flex-col gap-2.5">
-            {todaysMeals.map((m) => (
+            {selectedMeals.map((m) => (
               <div key={m.id} className="flex items-start gap-3 border-b border-[var(--border)] pb-2.5 last:border-0 last:pb-0">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">

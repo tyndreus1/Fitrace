@@ -74,7 +74,7 @@ export function DataProvider({ children }) {
       reload,
       storage,
       // Bulut ayarlı olduğu hâlde yerel kayda düşülmüşse arayüz uyarır
-      storageDegraded: hasRemote && storage.mode === 'yerel',
+      storageDegraded: hasRemote && (storage.mode === 'yerel' || Object.keys(storage.tableErrors).length > 0),
       saveError,
       dismissSaveError: () => setSaveError(''),
       currentWeight,
